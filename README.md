@@ -37,6 +37,29 @@ Sistema de gestión empresarial que permite administrar clientes, empleados, con
 
 ---
 
+## 🏗️ Arquitectura del Sistema
+
+El aplicativo desarrollado sigue una **arquitectura de tres capas** que separa claramente la lógica de presentación, la lógica de negocio y la capa de acceso a datos. Esta separación facilita el mantenimiento, la escalabilidad y la reutilización del código.
+
+### Capa de Presentación (Vista)
+- **Ubicación:** `views/`
+- **Tecnología:** Tkinter (Python)
+- **Responsabilidad:** Proporciona la interfaz gráfica de usuario con ventanas, formularios, botones y tablas para la interacción con el sistema.
+- **Módulos:** Cada módulo funcional (Gestión de Clientes, Gestión de Empleados, Consultas SUNAT, Archivos Excel) tiene su propia ventana independiente con controles específicos.
+
+### Capa de Lógica de Negocio (Controlador)
+- **Ubicación:** `controllers/`
+- **Responsabilidad:** Contiene las clases y métodos que implementan las reglas de negocio, validaciones y coordinan las operaciones entre la vista y el modelo.
+- **Funciones:** Valida los datos ingresados por el usuario antes de enviarlos a la base de datos y procesa las respuestas para mostrarlas en la interfaz.
+
+### Capa de Acceso a Datos (Modelo)
+- **Ubicación:** `models/`
+- **Tecnología:** mysql-connector-python
+- **Responsabilidad:** Gestiona la conexión con la base de datos MySQL. Ejecuta las consultas SQL, procedimientos almacenados y triggers, devolviendo los resultados a la capa de lógica de negocio.
+- **Optimización:** Implementa un patrón Singleton para optimizar las conexiones.
+
+---
+
 ## 🚀 Características Principales
 
 ### 1. Gestión de Clientes
@@ -102,24 +125,24 @@ pip install -r requirements.txt
 1. Crear la base de datos:
 
 ```bash
-mysql -u root -p < database_schema.sql
+mysql -u root -p < sql/database_schema.sql
 ```
 
 2. Crear procedimientos almacenados:
 
 ```bash
-mysql -u root -p gestion_clientes_jp < stored_procedures.sql
+mysql -u root -p gestion_clientes_jp < sql/stored_procedures.sql
 ```
 
 3. Crear triggers de auditoría:
 
 ```bash
-mysql -u root -p gestion_clientes_jp < triggers.sql
+mysql -u root -p gestion_clientes_jp < sql/triggers.sql
 ```
 
 ### Paso 4: Configurar credenciales
 
-Editar el archivo `config_db.py` con tus credenciales de MySQL:
+Editar el archivo `models/config_db.py` con tus credenciales de MySQL:
 
 ```python
 CONFIG = {
@@ -144,20 +167,30 @@ python main.py
 ```
 gestionclientesjp/
 │
-├── main.py                          # Aplicación principal
-├── config_db.py                     # Configuración de base de datos
-├── modulo_clientes.py              # Módulo de gestión de clientes
-├── modulo_empleados.py             # Módulo de gestión de empleados
-├── modulo_consulta_sunat.py        # Módulo de consultas SUNAT
-├── modulo_archivos_excel.py        # Módulo de archivos Excel
+├── main.py                          # Aplicación principal (punto de entrada)
 │
-├── database_schema.sql             # Esquema de base de datos
-├── stored_procedures.sql           # Procedimientos almacenados
-├── triggers.sql                    # Triggers de auditoría
-├── consultas_reportes.sql          # Consultas SQL de reportes
+├── views/                           # CAPA DE PRESENTACIÓN (Vista)
+│   ├── __init__.py
+│   ├── modulo_clientes.py          # Vista: Gestión de clientes
+│   ├── modulo_empleados.py         # Vista: Gestión de empleados
+│   ├── modulo_consulta_sunat.py    # Vista: Consultas SUNAT
+│   └── modulo_archivos_excel.py    # Vista: Archivos Excel
+│
+├── controllers/                     # CAPA DE LÓGICA DE NEGOCIO (Controlador)
+│   └── __init__.py                 # Validaciones y reglas de negocio
+│
+├── models/                          # CAPA DE ACCESO A DATOS (Modelo)
+│   ├── __init__.py
+│   └── config_db.py                # Configuración y conexión a BD
+│
+├── sql/                            # Scripts SQL
+│   ├── database_schema.sql         # Esquema de base de datos
+│   ├── stored_procedures.sql       # Procedimientos almacenados
+│   ├── triggers.sql                # Triggers de auditoría
+│   └── consultas_reportes.sql      # Consultas SQL de reportes
 │
 ├── requirements.txt                # Dependencias del proyecto
-└── README.md                       # Este archivo
+└── README.md                       # Documentación
 ```
 
 ---

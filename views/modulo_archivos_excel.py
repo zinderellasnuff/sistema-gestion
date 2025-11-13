@@ -6,7 +6,7 @@ Versión: 1.0
 
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-from config_db import Database
+from models.config_db import Database
 
 class GestionArchivosExcel:
     def __init__(self, parent):

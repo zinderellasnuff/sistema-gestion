@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-from config_db import Database
-from modulo_clientes import GestionClientes
-from modulo_empleados import GestionEmpleados
-from modulo_consulta_sunat import ConsultaSUNAT
-from modulo_archivos_excel import GestionArchivosExcel
+from models.config_db import Database
+from views.modulo_clientes import GestionClientes
+from views.modulo_empleados import GestionEmpleados
+from views.modulo_consulta_sunat import ConsultaSUNAT
+from views.modulo_archivos_excel import GestionArchivosExcel
 
 class AplicativoJP:
 
