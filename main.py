@@ -5,6 +5,7 @@ from views.modulo_clientes import GestionClientes
 from views.modulo_empleados import GestionEmpleados
 from views.modulo_consulta_sunat import ConsultaSUNAT
 from views.modulo_archivos_excel import GestionArchivosExcel
+from views.modulo_reportes import ModuloReportes
 
 class AplicativoJP:
 
@@ -282,16 +283,11 @@ class AplicativoJP:
             messagebox.showerror("Error", f"Error al abrir Archivos Excel:\n{str(e)}")
 
     def reportes(self):
-        """Muestra el módulo de reportes"""
-        messagebox.showinfo(
-            "Reportes y Análisis",
-            "Módulo de reportes en desarrollo.\n\n" +
-            "Funcionalidades previstas:\n" +
-            "- Reporte de clientes por departamento\n" +
-            "- Estadísticas de empleados\n" +
-            "- Análisis de consultas SUNAT\n" +
-            "- Gráficos y dashboard ejecutivo"
-        )
+        """Abre el módulo de reportes"""
+        try:
+            ModuloReportes(self.root)
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al abrir Reportes:\n{str(e)}")
 
     def configuracion(self):
         """Muestra el módulo de configuración"""
