@@ -1,162 +1,296 @@
 -- =====================================================
--- CONSULTAS SQL DE REPORTES
+-- CONSULTAS SQL DE REPORTES - Adaptadas a estructura REAL
 -- Sistema de Gestión de Clientes JP
--- 5 Consultas implementadas (30% del total de 13 consultas planificadas)
+-- 13 Consultas implementadas (100% completo)
 -- =====================================================
 
 USE gestion_clientes_jp;
 
 -- =====================================================
--- CONSULTA 1: Reporte de Clientes Activos por Departamento
--- Descripción: Lista todos los clientes activos agrupados por departamento
+-- CONSULTA 1: Listado completo de clientes
 -- =====================================================
-SELECT
-    'REPORTE 1: Clientes Activos por Departamento' AS Reporte;
+SELECT 'CONSULTA 1: Listado Completo de Clientes' AS Reporte;
 
 SELECT
-    departamento,
-    COUNT(*) AS total_clientes,
-    GROUP_CONCAT(razon_social SEPARATOR ', ') AS clientes
+    ruc,
+    CONCAT(nombres, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
+    correo_electronico,
+    pagina_web,
+    telefono
 FROM cliente
-WHERE estado = 'ACTIVO'
-GROUP BY departamento
-ORDER BY total_clientes DESC;
+ORDER BY apellido_paterno, apellido_materno, nombres;
 
 -- =====================================================
--- CONSULTA 2: Reporte de Empleados por Área y Cargo
--- Descripción: Muestra empleados agrupados por área con total de salarios
+-- CONSULTA 2: Clientes con información completa
 -- =====================================================
-SELECT
-    'REPORTE 2: Empleados por Área con Salarios' AS Reporte;
+SELECT 'CONSULTA 2: Clientes con Información Completa' AS Reporte;
 
 SELECT
-    area,
+    ruc,
+    CONCAT(nombres, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
+    correo_electronico,
+    telefono,
+    pagina_web
+FROM cliente
+WHERE correo_electronico IS NOT NULL
+  AND telefono IS NOT NULL
+  AND pagina_web IS NOT NULL
+ORDER BY apellido_paterno;
+
+-- =====================================================
+-- CONSULTA 3: Clientes con información incompleta
+-- =====================================================
+SELECT 'CONSULTA 3: Clientes con Información Incompleta' AS Reporte;
+
+SELECT
+    ruc,
+    CONCAT(nombres, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
+    CASE
+        WHEN correo_electronico IS NULL THEN 'Falta correo'
+        WHEN pagina_web IS NULL THEN 'Falta página web'
+        ELSE 'Datos incompletos'
+    END AS dato_faltante,
+    correo_electronico,
+    telefono,
+    pagina_web
+FROM cliente
+WHERE correo_electronico IS NULL OR pagina_web IS NULL
+ORDER BY apellido_paterno;
+
+-- =====================================================
+-- CONSULTA 4: Búsqueda flexible de clientes
+-- =====================================================
+SELECT 'CONSULTA 4: Búsqueda Flexible de Clientes' AS Reporte;
+
+SELECT
+    ruc,
+    CONCAT(nombres, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
+    correo_electronico,
+    telefono,
+    pagina_web
+FROM cliente
+WHERE nombres LIKE '%a%'
+   OR apellido_paterno LIKE '%a%'
+   OR apellido_materno LIKE '%a%'
+ORDER BY apellido_paterno;
+
+-- =====================================================
+-- CONSULTA 5: Conteo de clientes por apellido paterno
+-- =====================================================
+SELECT 'CONSULTA 5: Conteo de Clientes por Apellido Paterno' AS Reporte;
+
+SELECT
+    apellido_paterno,
+    COUNT(*) AS total_clientes,
+    GROUP_CONCAT(CONCAT(nombres, ' ', apellido_materno) ORDER BY nombres SEPARATOR ', ') AS clientes
+FROM cliente
+GROUP BY apellido_paterno
+ORDER BY total_clientes DESC, apellido_paterno;
+
+-- =====================================================
+-- CONSULTA 6: Clientes asignados a empleados (JOIN)
+-- =====================================================
+SELECT 'CONSULTA 6: Clientes Asignados a Empleados (JOIN)' AS Reporte;
+
+SELECT
+    e.codigo,
+    CONCAT(e.nombres, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS empleado,
+    e.cargo,
+    e.sexo,
+    c.ruc,
+    CONCAT(c.nombres, ' ', c.apellido_paterno, ' ', c.apellido_materno) AS cliente,
+    c.telefono,
+    c.correo_electronico
+FROM empleado e
+INNER JOIN cliente c ON e.ruc_cliente = c.ruc
+ORDER BY e.codigo;
+
+-- =====================================================
+-- CONSULTA 7: Estadísticas de empleados por cargo
+-- =====================================================
+SELECT 'CONSULTA 7: Estadísticas de Empleados por Cargo' AS Reporte;
+
+SELECT
     cargo,
     COUNT(*) AS total_empleados,
-    SUM(salario) AS total_salarios,
-    AVG(salario) AS salario_promedio,
-    MIN(salario) AS salario_minimo,
-    MAX(salario) AS salario_maximo
+    SUM(CASE WHEN sexo = 'Masculino' THEN 1 ELSE 0 END) AS hombres,
+    SUM(CASE WHEN sexo = 'Femenino' THEN 1 ELSE 0 END) AS mujeres,
+    MIN(fecha_nacimiento) AS empleado_mas_antiguo,
+    MAX(fecha_nacimiento) AS empleado_mas_joven
 FROM empleado
-WHERE estado = 'ACTIVO'
-GROUP BY area, cargo
-ORDER BY area, total_salarios DESC;
+GROUP BY cargo
+ORDER BY total_empleados DESC;
 
 -- =====================================================
--- CONSULTA 3: Reporte de Consultas SUNAT por Tipo
--- Descripción: Estadísticas de consultas realizadas a SUNAT
+-- CONSULTA 8: Empleados sin clientes asignados
 -- =====================================================
-SELECT
-    'REPORTE 3: Consultas SUNAT por Tipo' AS Reporte;
+SELECT 'CONSULTA 8: Empleados sin Clientes Asignados' AS Reporte;
 
 SELECT
-    tipo_consulta,
-    COUNT(*) AS total_consultas,
-    COUNT(DISTINCT ruc_consultado) AS rucs_unicos,
-    estado_sunat,
-    condicion_sunat,
-    DATE_FORMAT(MIN(fecha_consulta), '%Y-%m-%d') AS primera_consulta,
-    DATE_FORMAT(MAX(fecha_consulta), '%Y-%m-%d') AS ultima_consulta
-FROM consulta_sunat
-GROUP BY tipo_consulta, estado_sunat, condicion_sunat
+    e.codigo,
+    CONCAT(e.nombres, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS empleado,
+    e.cargo,
+    e.sexo,
+    e.fecha_nacimiento,
+    TIMESTAMPDIFF(YEAR, e.fecha_nacimiento, CURDATE()) AS edad
+FROM empleado e
+WHERE e.ruc_cliente IS NULL
+ORDER BY e.codigo;
+
+-- =====================================================
+-- CONSULTA 9: Historial completo de consultas SUNAT (JOIN)
+-- =====================================================
+SELECT 'CONSULTA 9: Historial Completo de Consultas SUNAT (JOIN)' AS Reporte;
+
+SELECT
+    cs.nro_consultado,
+    cs.razon_social,
+    cs.estado,
+    cs.condicion,
+    cs.codigo_empleado,
+    CONCAT(e.nombres, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS empleado,
+    e.cargo
+FROM consulta_sunat cs
+INNER JOIN empleado e ON cs.codigo_empleado = e.codigo
+ORDER BY cs.nro_consultado;
+
+-- =====================================================
+-- CONSULTA 10: Clientes con problemas en SUNAT
+-- =====================================================
+SELECT 'CONSULTA 10: Clientes con Problemas en SUNAT' AS Reporte;
+
+SELECT
+    c.ruc,
+    CONCAT(c.nombres, ' ', c.apellido_paterno, ' ', c.apellido_materno) AS cliente,
+    c.correo_electronico,
+    c.telefono,
+    cs.razon_social,
+    cs.estado,
+    cs.condicion,
+    CASE
+        WHEN cs.estado != 'ACTIVO' THEN 'URGENTE - Estado inactivo'
+        WHEN cs.condicion != 'HABIDO' THEN 'IMPORTANTE - No habido'
+        ELSE 'REVISAR'
+    END AS prioridad
+FROM cliente c
+LEFT JOIN consulta_sunat cs ON c.ruc = cs.nro_consultado
+WHERE cs.estado IS NOT NULL
+  AND (cs.estado != 'ACTIVO' OR cs.condicion != 'HABIDO')
+ORDER BY
+    CASE
+        WHEN cs.estado != 'ACTIVO' THEN 1
+        WHEN cs.condicion != 'HABIDO' THEN 2
+        ELSE 3
+    END;
+
+-- =====================================================
+-- CONSULTA 11: Productividad de consultas SUNAT por empleado
+-- =====================================================
+SELECT 'CONSULTA 11: Productividad de Consultas SUNAT por Empleado' AS Reporte;
+
+SELECT
+    e.codigo,
+    CONCAT(e.nombres, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS empleado,
+    e.cargo,
+    COUNT(cs.nro_consultado) AS total_consultas,
+    SUM(CASE WHEN cs.estado = 'ACTIVO' THEN 1 ELSE 0 END) AS consultas_activas,
+    SUM(CASE WHEN cs.condicion = 'HABIDO' THEN 1 ELSE 0 END) AS consultas_habidas
+FROM empleado e
+LEFT JOIN consulta_sunat cs ON e.codigo = cs.codigo_empleado
+GROUP BY e.codigo, empleado, e.cargo
 ORDER BY total_consultas DESC;
 
 -- =====================================================
--- CONSULTA 4: Reporte de Archivos Excel Procesados
--- Descripción: Resumen de archivos Excel con estadísticas de procesamiento
+-- CONSULTA 12: Análisis de archivos Excel
 -- =====================================================
-SELECT
-    'REPORTE 4: Resumen de Archivos Excel Procesados' AS Reporte;
+SELECT 'CONSULTA 12: Análisis de Uso de Archivos Excel' AS Reporte;
 
 SELECT
-    tipo_operacion,
-    COUNT(*) AS total_archivos,
-    SUM(registros_procesados) AS total_registros,
-    SUM(registros_exitosos) AS total_exitosos,
-    SUM(registros_con_error) AS total_errores,
-    ROUND((SUM(registros_exitosos) / SUM(registros_procesados)) * 100, 2) AS porcentaje_exito,
-    estado_procesamiento
+    nombre,
+    DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i') AS fecha_creacion,
+    DATE_FORMAT(fecha_modificacion, '%Y-%m-%d %H:%i') AS fecha_modificacion,
+    TIMESTAMPDIFF(DAY, fecha_creacion, fecha_modificacion) AS dias_entre_modificaciones,
+    TIMESTAMPDIFF(DAY, fecha_modificacion, NOW()) AS dias_desde_ultima_modificacion,
+    CASE
+        WHEN TIMESTAMPDIFF(DAY, fecha_modificacion, NOW()) > 180 THEN 'Archivo antiguo'
+        WHEN TIMESTAMPDIFF(DAY, fecha_modificacion, NOW()) > 90 THEN 'Archivo desactualizado'
+        ELSE 'Archivo reciente'
+    END AS estado_archivo
 FROM archivo_excel_gestion_clientes
-GROUP BY tipo_operacion, estado_procesamiento
-ORDER BY tipo_operacion, total_archivos DESC;
+ORDER BY fecha_modificacion DESC;
 
 -- =====================================================
--- CONSULTA 5: Reporte de Auditoría de Clientes (Últimas 30 operaciones)
--- Descripción: Muestra las últimas operaciones de auditoría en clientes
+-- CONSULTA 13: Reporte consolidado Cliente-Empleado-SUNAT (JOIN múltiple)
 -- =====================================================
-SELECT
-    'REPORTE 5: Auditoría de Clientes (Últimas 30 operaciones)' AS Reporte;
+SELECT 'CONSULTA 13: Reporte Consolidado Cliente-Empleado-SUNAT (JOIN Múltiple)' AS Reporte;
 
 SELECT
-    a.id_auditoria,
-    a.id_cliente,
-    c.razon_social,
     c.ruc,
-    a.tipo_operacion,
-    a.usuario,
-    DATE_FORMAT(a.fecha_operacion, '%Y-%m-%d %H:%i:%s') AS fecha_hora,
-    a.observaciones
-FROM auditoria_cliente a
-LEFT JOIN cliente c ON a.id_cliente = c.id_cliente
-ORDER BY a.fecha_operacion DESC
-LIMIT 30;
+    CONCAT(c.nombres, ' ', c.apellido_paterno, ' ', c.apellido_materno) AS cliente,
+    c.correo_electronico,
+    c.telefono,
+    c.pagina_web,
+    e.codigo AS empleado_codigo,
+    CONCAT(e.nombres, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS empleado_asignado,
+    e.cargo,
+    e.sexo,
+    cs.razon_social,
+    cs.estado AS estado_sunat,
+    cs.condicion AS condicion_sunat,
+    CASE
+        WHEN cs.estado = 'ACTIVO' AND cs.condicion = 'HABIDO' THEN 'VALIDADO'
+        WHEN cs.estado != 'ACTIVO' THEN 'ALERTA - Inactivo'
+        WHEN cs.condicion != 'HABIDO' THEN 'ALERTA - No habido'
+        ELSE 'REVISAR'
+    END AS clasificacion
+FROM cliente c
+LEFT JOIN empleado e ON c.ruc = e.ruc_cliente
+LEFT JOIN consulta_sunat cs ON c.ruc = cs.nro_consultado
+ORDER BY c.apellido_paterno, c.apellido_materno;
 
 -- =====================================================
--- VISTA ADICIONAL: Dashboard Principal
--- Descripción: Vista consolidada para el dashboard principal
+-- VISTAS ÚTILES
 -- =====================================================
+
+-- Vista: Dashboard principal
 DROP VIEW IF EXISTS vista_dashboard_principal;
 CREATE VIEW vista_dashboard_principal AS
 SELECT
-    (SELECT COUNT(*) FROM cliente WHERE estado = 'ACTIVO') AS total_clientes_activos,
-    (SELECT COUNT(*) FROM cliente WHERE estado = 'INACTIVO') AS total_clientes_inactivos,
-    (SELECT COUNT(*) FROM cliente WHERE estado = 'SUSPENDIDO') AS total_clientes_suspendidos,
-    (SELECT COUNT(*) FROM empleado WHERE estado = 'ACTIVO') AS total_empleados_activos,
-    (SELECT SUM(salario) FROM empleado WHERE estado = 'ACTIVO') AS nomina_total,
-    (SELECT COUNT(*) FROM consulta_sunat WHERE DATE(fecha_consulta) = CURDATE()) AS consultas_sunat_hoy,
-    (SELECT COUNT(*) FROM archivo_excel_gestion_clientes WHERE estado_procesamiento = 'COMPLETADO') AS archivos_procesados,
-    (SELECT COUNT(*) FROM auditoria_cliente WHERE DATE(fecha_operacion) = CURDATE()) AS operaciones_hoy;
+    (SELECT COUNT(*) FROM cliente) AS total_clientes,
+    (SELECT COUNT(*) FROM empleado) AS total_empleados,
+    (SELECT COUNT(*) FROM consulta_sunat) AS total_consultas_sunat,
+    (SELECT COUNT(*) FROM archivo_excel_gestion_clientes) AS total_archivos,
+    (SELECT COUNT(*) FROM empleado WHERE sexo = 'Masculino') AS empleados_masculinos,
+    (SELECT COUNT(*) FROM empleado WHERE sexo = 'Femenino') AS empleados_femeninos,
+    (SELECT COUNT(*) FROM consulta_sunat WHERE estado = 'ACTIVO') AS consultas_activas,
+    (SELECT COUNT(*) FROM consulta_sunat WHERE condicion = 'HABIDO') AS consultas_habidas;
 
--- Consultar la vista del dashboard
-SELECT 'VISTA DASHBOARD: Resumen General del Sistema' AS Reporte;
+-- Vista: Clientes con empleados asignados
+DROP VIEW IF EXISTS vista_clientes_empleados;
+CREATE VIEW vista_clientes_empleados AS
+SELECT
+    c.ruc,
+    CONCAT(c.nombres, ' ', c.apellido_paterno, ' ', c.apellido_materno) AS cliente_nombre,
+    c.correo_electronico,
+    c.telefono,
+    c.pagina_web,
+    e.codigo AS empleado_codigo,
+    CONCAT(e.nombres, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS empleado_nombre,
+    e.cargo,
+    e.sexo
+FROM cliente c
+LEFT JOIN empleado e ON c.ruc = e.ruc_cliente;
+
+-- Consultar vistas
+SELECT 'VISTA: Dashboard Principal' AS Reporte;
 SELECT * FROM vista_dashboard_principal;
 
--- =====================================================
--- CONSULTAS ADICIONALES ÚTILES (Bonus)
--- =====================================================
-
--- Clientes por provincia (Top 10)
-SELECT
-    'BONUS: Top 10 Provincias con más Clientes' AS Reporte;
-
-SELECT
-    provincia,
-    departamento,
-    COUNT(*) AS total_clientes
-FROM cliente
-WHERE estado = 'ACTIVO'
-GROUP BY provincia, departamento
-ORDER BY total_clientes DESC
-LIMIT 10;
-
--- Empleados próximos a cumplir años
-SELECT
-    'BONUS: Empleados con Cumpleaños este Mes' AS Reporte;
-
-SELECT
-    CONCAT(nombres, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
-    dni,
-    cargo,
-    DATE_FORMAT(fecha_nacimiento, '%d-%m-%Y') AS fecha_nacimiento,
-    TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) AS edad
-FROM empleado
-WHERE MONTH(fecha_nacimiento) = MONTH(CURDATE())
-  AND estado = 'ACTIVO'
-ORDER BY DAY(fecha_nacimiento);
+SELECT 'VISTA: Clientes con Empleados Asignados' AS Reporte;
+SELECT * FROM vista_clientes_empleados LIMIT 20;
 
 -- =====================================================
 -- MENSAJE DE CONFIRMACIÓN
 -- =====================================================
-SELECT '✓ 5 Consultas de Reportes implementadas exitosamente' AS Mensaje;
-SELECT '✓ 1 Vista de Dashboard creada' AS Mensaje;
-SELECT '✓ 2 Consultas Bonus agregadas' AS Mensaje;
+SELECT '✓✓✓ 13 Consultas SQL implementadas y adaptadas a estructura REAL ✓✓✓' AS Mensaje;
+SELECT '✓ 2 Vistas de base de datos creadas' AS Mensaje;
+SELECT '✓ 6 Consultas con JOIN implementadas' AS Mensaje;

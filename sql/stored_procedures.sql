@@ -1,6 +1,7 @@
 -- =====================================================
--- PROCEDIMIENTOS ALMACENADOS
+-- PROCEDIMIENTOS ALMACENADOS - Adaptados a estructura REAL
 -- Sistema de Gestión de Clientes JP
+-- Versión: 2.0
 -- =====================================================
 
 USE gestion_clientes_jp;
@@ -8,26 +9,21 @@ USE gestion_clientes_jp;
 DELIMITER $$
 
 -- =====================================================
--- PROCEDIMIENTOS PARA TABLA: cliente
+-- PROCEDIMIENTOS PARA: cliente
+-- Estructura REAL: ruc, nombres, apellido_paterno, apellido_materno,
+--                  correo_electronico, pagina_web, telefono
 -- =====================================================
 
--- Procedimiento: Insertar Cliente
+-- Insertar cliente
 DROP PROCEDURE IF EXISTS sp_insertar_cliente$$
 CREATE PROCEDURE sp_insertar_cliente(
-    IN p_ruc VARCHAR(11),
-    IN p_razon_social VARCHAR(255),
-    IN p_nombre_comercial VARCHAR(255),
-    IN p_direccion TEXT,
-    IN p_distrito VARCHAR(100),
-    IN p_provincia VARCHAR(100),
-    IN p_departamento VARCHAR(100),
-    IN p_telefono VARCHAR(20),
-    IN p_email VARCHAR(150),
-    IN p_contacto_nombre VARCHAR(255),
-    IN p_contacto_cargo VARCHAR(100),
-    IN p_contacto_telefono VARCHAR(20),
-    IN p_contacto_email VARCHAR(150),
-    IN p_observaciones TEXT
+    IN p_ruc CHAR(11),
+    IN p_nombres VARCHAR(50),
+    IN p_apellido_paterno VARCHAR(50),
+    IN p_apellido_materno VARCHAR(50),
+    IN p_correo_electronico VARCHAR(100),
+    IN p_pagina_web VARCHAR(200),
+    IN p_telefono CHAR(9)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -38,39 +34,25 @@ BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO cliente (
-        ruc, razon_social, nombre_comercial, direccion, distrito, provincia,
-        departamento, telefono, email, contacto_nombre, contacto_cargo,
-        contacto_telefono, contacto_email, observaciones
-    ) VALUES (
-        p_ruc, p_razon_social, p_nombre_comercial, p_direccion, p_distrito,
-        p_provincia, p_departamento, p_telefono, p_email, p_contacto_nombre,
-        p_contacto_cargo, p_contacto_telefono, p_contacto_email, p_observaciones
-    );
+    INSERT INTO cliente (ruc, nombres, apellido_paterno, apellido_materno,
+                        correo_electronico, pagina_web, telefono)
+    VALUES (p_ruc, p_nombres, p_apellido_paterno, p_apellido_materno,
+            p_correo_electronico, p_pagina_web, p_telefono);
 
     COMMIT;
-    SELECT LAST_INSERT_ID() AS id_cliente;
+    SELECT p_ruc AS ruc_insertado;
 END$$
 
--- Procedimiento: Actualizar Cliente
+-- Actualizar cliente
 DROP PROCEDURE IF EXISTS sp_actualizar_cliente$$
 CREATE PROCEDURE sp_actualizar_cliente(
-    IN p_id_cliente INT,
-    IN p_ruc VARCHAR(11),
-    IN p_razon_social VARCHAR(255),
-    IN p_nombre_comercial VARCHAR(255),
-    IN p_direccion TEXT,
-    IN p_distrito VARCHAR(100),
-    IN p_provincia VARCHAR(100),
-    IN p_departamento VARCHAR(100),
-    IN p_telefono VARCHAR(20),
-    IN p_email VARCHAR(150),
-    IN p_contacto_nombre VARCHAR(255),
-    IN p_contacto_cargo VARCHAR(100),
-    IN p_contacto_telefono VARCHAR(20),
-    IN p_contacto_email VARCHAR(150),
-    IN p_estado VARCHAR(20),
-    IN p_observaciones TEXT
+    IN p_ruc CHAR(11),
+    IN p_nombres VARCHAR(50),
+    IN p_apellido_paterno VARCHAR(50),
+    IN p_apellido_materno VARCHAR(50),
+    IN p_correo_electronico VARCHAR(100),
+    IN p_pagina_web VARCHAR(200),
+    IN p_telefono CHAR(9)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -82,32 +64,22 @@ BEGIN
     START TRANSACTION;
 
     UPDATE cliente SET
-        ruc = p_ruc,
-        razon_social = p_razon_social,
-        nombre_comercial = p_nombre_comercial,
-        direccion = p_direccion,
-        distrito = p_distrito,
-        provincia = p_provincia,
-        departamento = p_departamento,
-        telefono = p_telefono,
-        email = p_email,
-        contacto_nombre = p_contacto_nombre,
-        contacto_cargo = p_contacto_cargo,
-        contacto_telefono = p_contacto_telefono,
-        contacto_email = p_contacto_email,
-        estado = p_estado,
-        observaciones = p_observaciones,
-        fecha_actualizacion = CURRENT_TIMESTAMP
-    WHERE id_cliente = p_id_cliente;
+        nombres = p_nombres,
+        apellido_paterno = p_apellido_paterno,
+        apellido_materno = p_apellido_materno,
+        correo_electronico = p_correo_electronico,
+        pagina_web = p_pagina_web,
+        telefono = p_telefono
+    WHERE ruc = p_ruc;
 
     COMMIT;
     SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
--- Procedimiento: Eliminar Cliente (Lógico)
+-- Eliminar cliente
 DROP PROCEDURE IF EXISTS sp_eliminar_cliente$$
 CREATE PROCEDURE sp_eliminar_cliente(
-    IN p_id_cliente INT
+    IN p_ruc CHAR(11)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -118,38 +90,30 @@ BEGIN
 
     START TRANSACTION;
 
-    UPDATE cliente
-    SET estado = 'INACTIVO',
-        fecha_actualizacion = CURRENT_TIMESTAMP
-    WHERE id_cliente = p_id_cliente;
+    DELETE FROM cliente WHERE ruc = p_ruc;
 
     COMMIT;
     SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
 -- =====================================================
--- PROCEDIMIENTOS PARA TABLA: empleado
+-- PROCEDIMIENTOS PARA: empleado
+-- Estructura REAL: codigo, sexo, cargo, fecha_nacimiento, nombres,
+--                  apellido_paterno, apellido_materno, ruc_cliente, nombre_archivo
 -- =====================================================
 
--- Procedimiento: Insertar Empleado
+-- Insertar empleado
 DROP PROCEDURE IF EXISTS sp_insertar_empleado$$
 CREATE PROCEDURE sp_insertar_empleado(
-    IN p_dni VARCHAR(8),
-    IN p_nombres VARCHAR(150),
-    IN p_apellido_paterno VARCHAR(100),
-    IN p_apellido_materno VARCHAR(100),
+    IN p_codigo INT,
+    IN p_sexo VARCHAR(10),
+    IN p_cargo VARCHAR(50),
     IN p_fecha_nacimiento DATE,
-    IN p_direccion TEXT,
-    IN p_distrito VARCHAR(100),
-    IN p_provincia VARCHAR(100),
-    IN p_departamento VARCHAR(100),
-    IN p_telefono VARCHAR(20),
-    IN p_email VARCHAR(150),
-    IN p_cargo VARCHAR(100),
-    IN p_area VARCHAR(100),
-    IN p_fecha_ingreso DATE,
-    IN p_salario DECIMAL(10,2),
-    IN p_observaciones TEXT
+    IN p_nombres VARCHAR(50),
+    IN p_apellido_paterno VARCHAR(20),
+    IN p_apellido_materno VARCHAR(20),
+    IN p_ruc_cliente CHAR(11),
+    IN p_nombre_archivo VARCHAR(100)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -160,36 +124,27 @@ BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO empleado (
-        dni, nombres, apellido_paterno, apellido_materno, fecha_nacimiento,
-        direccion, distrito, provincia, departamento, telefono, email,
-        cargo, area, fecha_ingreso, salario, observaciones
-    ) VALUES (
-        p_dni, p_nombres, p_apellido_paterno, p_apellido_materno, p_fecha_nacimiento,
-        p_direccion, p_distrito, p_provincia, p_departamento, p_telefono, p_email,
-        p_cargo, p_area, p_fecha_ingreso, p_salario, p_observaciones
-    );
+    INSERT INTO empleado (codigo, sexo, cargo, fecha_nacimiento, nombres,
+                         apellido_paterno, apellido_materno, ruc_cliente, nombre_archivo)
+    VALUES (p_codigo, p_sexo, p_cargo, p_fecha_nacimiento, p_nombres,
+            p_apellido_paterno, p_apellido_materno, p_ruc_cliente, p_nombre_archivo);
 
     COMMIT;
-    SELECT LAST_INSERT_ID() AS id_empleado;
+    SELECT p_codigo AS codigo_insertado;
 END$$
 
--- Procedimiento: Actualizar Empleado
+-- Actualizar empleado
 DROP PROCEDURE IF EXISTS sp_actualizar_empleado$$
 CREATE PROCEDURE sp_actualizar_empleado(
-    IN p_id_empleado INT,
-    IN p_dni VARCHAR(8),
-    IN p_nombres VARCHAR(150),
-    IN p_apellido_paterno VARCHAR(100),
-    IN p_apellido_materno VARCHAR(100),
-    IN p_direccion TEXT,
-    IN p_telefono VARCHAR(20),
-    IN p_email VARCHAR(150),
-    IN p_cargo VARCHAR(100),
-    IN p_area VARCHAR(100),
-    IN p_salario DECIMAL(10,2),
-    IN p_estado VARCHAR(20),
-    IN p_observaciones TEXT
+    IN p_codigo INT,
+    IN p_sexo VARCHAR(10),
+    IN p_cargo VARCHAR(50),
+    IN p_fecha_nacimiento DATE,
+    IN p_nombres VARCHAR(50),
+    IN p_apellido_paterno VARCHAR(20),
+    IN p_apellido_materno VARCHAR(20),
+    IN p_ruc_cliente CHAR(11),
+    IN p_nombre_archivo VARCHAR(100)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -201,29 +156,24 @@ BEGIN
     START TRANSACTION;
 
     UPDATE empleado SET
-        dni = p_dni,
+        sexo = p_sexo,
+        cargo = p_cargo,
+        fecha_nacimiento = p_fecha_nacimiento,
         nombres = p_nombres,
         apellido_paterno = p_apellido_paterno,
         apellido_materno = p_apellido_materno,
-        direccion = p_direccion,
-        telefono = p_telefono,
-        email = p_email,
-        cargo = p_cargo,
-        area = p_area,
-        salario = p_salario,
-        estado = p_estado,
-        observaciones = p_observaciones,
-        fecha_actualizacion = CURRENT_TIMESTAMP
-    WHERE id_empleado = p_id_empleado;
+        ruc_cliente = p_ruc_cliente,
+        nombre_archivo = p_nombre_archivo
+    WHERE codigo = p_codigo;
 
     COMMIT;
     SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
--- Procedimiento: Eliminar Empleado (Lógico)
+-- Eliminar empleado
 DROP PROCEDURE IF EXISTS sp_eliminar_empleado$$
 CREATE PROCEDURE sp_eliminar_empleado(
-    IN p_id_empleado INT
+    IN p_codigo INT
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -234,30 +184,25 @@ BEGIN
 
     START TRANSACTION;
 
-    UPDATE empleado
-    SET estado = 'INACTIVO',
-        fecha_actualizacion = CURRENT_TIMESTAMP
-    WHERE id_empleado = p_id_empleado;
+    DELETE FROM empleado WHERE codigo = p_codigo;
 
     COMMIT;
     SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
 -- =====================================================
--- PROCEDIMIENTOS PARA TABLA: consulta_sunat
+-- PROCEDIMIENTOS PARA: consulta_sunat
+-- Estructura REAL: nro_consultado, codigo_empleado, razon_social, estado, condicion
 -- =====================================================
 
--- Procedimiento: Insertar Consulta SUNAT
+-- Insertar consulta SUNAT
 DROP PROCEDURE IF EXISTS sp_insertar_consulta_sunat$$
 CREATE PROCEDURE sp_insertar_consulta_sunat(
-    IN p_id_cliente INT,
-    IN p_ruc_consultado VARCHAR(11),
-    IN p_tipo_consulta VARCHAR(50),
-    IN p_resultado_consulta TEXT,
-    IN p_estado_sunat VARCHAR(100),
-    IN p_condicion_sunat VARCHAR(100),
-    IN p_usuario_consulta VARCHAR(100),
-    IN p_observaciones TEXT
+    IN p_nro_consultado VARCHAR(20),
+    IN p_codigo_empleado INT,
+    IN p_razon_social VARCHAR(200),
+    IN p_estado VARCHAR(20),
+    IN p_condicion VARCHAR(20)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -268,55 +213,24 @@ BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO consulta_sunat (
-        id_cliente, ruc_consultado, tipo_consulta, resultado_consulta,
-        estado_sunat, condicion_sunat, usuario_consulta, observaciones
-    ) VALUES (
-        p_id_cliente, p_ruc_consultado, p_tipo_consulta, p_resultado_consulta,
-        p_estado_sunat, p_condicion_sunat, p_usuario_consulta, p_observaciones
-    );
+    INSERT INTO consulta_sunat (nro_consultado, codigo_empleado, razon_social, estado, condicion)
+    VALUES (p_nro_consultado, p_codigo_empleado, p_razon_social, p_estado, p_condicion);
 
     COMMIT;
-    SELECT LAST_INSERT_ID() AS id_consulta;
-END$$
-
--- Procedimiento: Eliminar Consulta SUNAT
-DROP PROCEDURE IF EXISTS sp_eliminar_consulta_sunat$$
-CREATE PROCEDURE sp_eliminar_consulta_sunat(
-    IN p_id_consulta INT
-)
-BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error al eliminar consulta SUNAT';
-    END;
-
-    START TRANSACTION;
-
-    DELETE FROM consulta_sunat WHERE id_consulta = p_id_consulta;
-
-    COMMIT;
-    SELECT ROW_COUNT() AS filas_afectadas;
+    SELECT 'Consulta SUNAT insertada' AS mensaje;
 END$$
 
 -- =====================================================
--- PROCEDIMIENTOS PARA TABLA: archivo_excel_gestion_clientes
+-- PROCEDIMIENTOS PARA: archivo_excel_gestion_clientes
+-- Estructura REAL: nombre, fecha_creacion, fecha_modificacion
 -- =====================================================
 
--- Procedimiento: Insertar Archivo Excel
+-- Insertar archivo Excel
 DROP PROCEDURE IF EXISTS sp_insertar_archivo_excel$$
 CREATE PROCEDURE sp_insertar_archivo_excel(
-    IN p_nombre_archivo VARCHAR(255),
-    IN p_ruta_archivo TEXT,
-    IN p_tipo_operacion VARCHAR(50),
-    IN p_registros_procesados INT,
-    IN p_registros_exitosos INT,
-    IN p_registros_con_error INT,
-    IN p_usuario_procesamiento VARCHAR(100),
-    IN p_estado_procesamiento VARCHAR(50),
-    IN p_log_errores TEXT,
-    IN p_observaciones TEXT
+    IN p_nombre VARCHAR(100),
+    IN p_fecha_creacion DATETIME,
+    IN p_fecha_modificacion DATETIME
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -327,46 +241,31 @@ BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO archivo_excel_gestion_clientes (
-        nombre_archivo, ruta_archivo, tipo_operacion, registros_procesados,
-        registros_exitosos, registros_con_error, usuario_procesamiento,
-        estado_procesamiento, log_errores, observaciones
-    ) VALUES (
-        p_nombre_archivo, p_ruta_archivo, p_tipo_operacion, p_registros_procesados,
-        p_registros_exitosos, p_registros_con_error, p_usuario_procesamiento,
-        p_estado_procesamiento, p_log_errores, p_observaciones
-    );
+    INSERT INTO archivo_excel_gestion_clientes (nombre, fecha_creacion, fecha_modificacion)
+    VALUES (p_nombre, p_fecha_creacion, p_fecha_modificacion);
 
     COMMIT;
-    SELECT LAST_INSERT_ID() AS id_archivo;
+    SELECT p_nombre AS archivo_insertado;
 END$$
 
--- Procedimiento: Actualizar Estado Archivo Excel
-DROP PROCEDURE IF EXISTS sp_actualizar_estado_archivo_excel$$
-CREATE PROCEDURE sp_actualizar_estado_archivo_excel(
-    IN p_id_archivo INT,
-    IN p_estado_procesamiento VARCHAR(50),
-    IN p_registros_procesados INT,
-    IN p_registros_exitosos INT,
-    IN p_registros_con_error INT,
-    IN p_log_errores TEXT
+-- Actualizar archivo Excel
+DROP PROCEDURE IF EXISTS sp_actualizar_archivo_excel$$
+CREATE PROCEDURE sp_actualizar_archivo_excel(
+    IN p_nombre VARCHAR(100),
+    IN p_fecha_modificacion DATETIME
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error al actualizar estado archivo';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error al actualizar archivo Excel';
     END;
 
     START TRANSACTION;
 
-    UPDATE archivo_excel_gestion_clientes SET
-        estado_procesamiento = p_estado_procesamiento,
-        registros_procesados = p_registros_procesados,
-        registros_exitosos = p_registros_exitosos,
-        registros_con_error = p_registros_con_error,
-        log_errores = p_log_errores
-    WHERE id_archivo = p_id_archivo;
+    UPDATE archivo_excel_gestion_clientes
+    SET fecha_modificacion = p_fecha_modificacion
+    WHERE nombre = p_nombre;
 
     COMMIT;
     SELECT ROW_COUNT() AS filas_afectadas;
@@ -377,4 +276,5 @@ DELIMITER ;
 -- =====================================================
 -- MENSAJE DE CONFIRMACIÓN
 -- =====================================================
-SELECT 'Procedimientos almacenados creados exitosamente' AS Mensaje;
+SELECT '✓✓✓ Procedimientos almacenados creados exitosamente ✓✓✓' AS Mensaje;
+SELECT '✓ Adaptados a estructura real de base de datos' AS Mensaje;
