@@ -1,7 +1,7 @@
 -- =====================================================
 -- PROCEDIMIENTOS ALMACENADOS - Adaptados a estructura REAL
 -- Sistema de Gestión de Clientes JP
--- Versión: 2.1 (Sin prefijo sp_)
+-- Versión: 2.1 
 -- =====================================================
 
 USE gestion_clientes_jp;
@@ -44,7 +44,7 @@ BEGIN
 END$$
 
 -- Actualizar cliente
-DROP PROCEDURE IF EXISTS actualizar_cliente$$
+DROP PROCEDURE IF EXISTS actualizar_cliente;
 CREATE PROCEDURE actualizar_cliente(
     IN p_ruc CHAR(11),
     IN p_nombres VARCHAR(50),
@@ -55,14 +55,6 @@ CREATE PROCEDURE actualizar_cliente(
     IN p_telefono CHAR(9)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error al actualizar cliente';
-    END;
-
-    START TRANSACTION;
-
     UPDATE cliente SET
         nombres = p_nombres,
         apellido_paterno = p_apellido_paterno,
@@ -71,29 +63,15 @@ BEGIN
         pagina_web = p_pagina_web,
         telefono = p_telefono
     WHERE ruc = p_ruc;
-
-    COMMIT;
-    SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
 -- Eliminar cliente
-DROP PROCEDURE IF EXISTS eliminar_cliente$$
+
 CREATE PROCEDURE eliminar_cliente(
     IN p_ruc CHAR(11)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error al eliminar cliente';
-    END;
-
-    START TRANSACTION;
-
     DELETE FROM cliente WHERE ruc = p_ruc;
-
-    COMMIT;
-    SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
 -- Buscar cliente por RUC
@@ -309,10 +287,8 @@ BEGIN
     WHERE nombre = p_nombre;
 
     COMMIT;
-    SELECT ROW_COUNT() AS filas_afectadas;
+    -- ✅ Ya no devuelve resultado, así evita el error "Unread result found"
 END$$
-
-DELIMITER ;
 
 -- =====================================================
 -- MENSAJE DE CONFIRMACIÓN
