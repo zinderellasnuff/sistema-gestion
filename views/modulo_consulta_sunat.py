@@ -488,19 +488,83 @@ class ConsultaSUNAT:
         self.entry_nro_consultado.focus()
 
     def simular_consulta(self):
-        """Simula una consulta a SUNAT"""
+        """Consulta RUC usando la API de SUNAT"""
+        from controllers.sunat_controller import SUNATController
+        
         ruc = self.entry_nro_consultado.get().strip()
 
-        if not self.validar_ruc(ruc):
-            self.mostrar_error("RUC Inválido", "El RUC debe tener exactamente 11 dígitos")
+        # Validar formato
+        if not SUNATController.validar_ruc(ruc):
+            self.mostrar_error("RUC Inválido", "El RUC debe tener exactamente 11 dígitos numéricos")
+            self.entry_nro_consultado.focus()
             return
 
-        self.mostrar_info(
-            "Simulación de Consulta SUNAT",
-            f"En producción, aquí se consultaría el RUC {ruc} a la API de SUNAT.\n\n" +
-            "Los campos 'Razón Social', 'Estado' y 'Condición' se completarían automáticamente.\n\n" +
-            "Para este demo, complete los campos manualmente."
+        # Mostrar mensaje de espera
+        self.lbl_info_consulta = tk.Label(
+            self.ventana,
+            text="⏳ Consultando SUNAT, por favor espere...",
+            font=("Segoe UI", 10, "italic"),
+            bg="#FFC107",
+            fg="black"
         )
+        self.lbl_info_consulta.place(relx=0.5, rely=0.95, anchor="center")
+        self.ventana.update()
+
+        # Deshabilitar botón mientras consulta
+        # (busca el botón en tu código y guárdalo como self.btn_consultar)
+        
+        try:
+            # ✅ CONSULTAR API REAL
+            resultado = SUNATController.consultar_ruc(ruc)
+
+            if resultado['success']:
+                # ✅ AUTO-COMPLETAR CAMPOS
+                self.entry_razon_social.delete(0, tk.END)
+                self.entry_razon_social.insert(0, resultado['razon_social'])
+
+                # Normalizar y establecer valores
+                estado_normalizado = SUNATController.normalizar_estado(resultado['estado'])
+                condicion_normalizada = SUNATController.normalizar_condicion(resultado['condicion'])
+
+                self.combo_estado.set(estado_normalizado)
+                self.combo_condicion.set(condicion_normalizada)
+
+                # Mensaje de éxito
+                self.lbl_info_consulta.config(
+                    text=f"✓ Consulta exitosa usando {resultado['api_used']}",
+                    fg="#28A745"
+                )
+                self.ventana.after(3000, self.lbl_info_consulta.destroy)
+
+                self.mostrar_exito(
+                    "Consulta Exitosa",
+                    f"✓ RUC consultado: {ruc}\n"
+                    f"Razón Social: {resultado['razon_social']}\n"
+                    f"Estado: {estado_normalizado}\n"
+                    f"Condición: {condicion_normalizada}\n\n"
+                    f"API utilizada: {resultado['api_used']}"
+                )
+            else:
+                # ❌ Error en la consulta
+                self.lbl_info_consulta.config(
+                    text=f"✗ {resultado['error']}",
+                    fg="#DC3545"
+                )
+                self.ventana.after(5000, self.lbl_info_consulta.destroy)
+
+                self.mostrar_advertencia(
+                    "Consulta Fallida",
+                    f"{resultado['error']}\n\n"
+                    "Complete los campos manualmente."
+                )
+
+        except Exception as e:
+            self.lbl_info_consulta.config(
+                text="✗ Error al consultar SUNAT",
+                fg="#DC3545"
+            )
+            self.ventana.after(3000, self.lbl_info_consulta.destroy)
+            self.mostrar_error("Error Inesperado", f"No se pudo consultar:\n{str(e)}")
 
     def guardar_consulta(self):
         """Guarda una consulta SUNAT con modal de confirmación"""

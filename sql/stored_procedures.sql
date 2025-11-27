@@ -1,7 +1,7 @@
 -- =====================================================
 -- PROCEDIMIENTOS ALMACENADOS - Adaptados a estructura REAL
 -- Sistema de Gestión de Clientes JP
--- Versión: 2.1 
+-- Versión: 2.2 - SIN SELECT al final (corrige "Unread result found")
 -- =====================================================
 
 USE gestion_clientes_jp;
@@ -10,8 +10,6 @@ DELIMITER $$
 
 -- =====================================================
 -- PROCEDIMIENTOS PARA: cliente
--- Estructura REAL: ruc, nombres, apellido_paterno, apellido_materno,
---                  correo_electronico, pagina_web, telefono
 -- =====================================================
 
 -- Insertar cliente
@@ -40,11 +38,11 @@ BEGIN
             p_correo_electronico, p_pagina_web, p_telefono);
 
     COMMIT;
-    SELECT p_ruc AS ruc_insertado;
+    -- ✅ QUITADO: SELECT p_ruc AS ruc_insertado;
 END$$
 
 -- Actualizar cliente
-DROP PROCEDURE IF EXISTS actualizar_cliente;
+DROP PROCEDURE IF EXISTS actualizar_cliente$$
 CREATE PROCEDURE actualizar_cliente(
     IN p_ruc CHAR(11),
     IN p_nombres VARCHAR(50),
@@ -66,7 +64,7 @@ BEGIN
 END$$
 
 -- Eliminar cliente
-
+DROP PROCEDURE IF EXISTS eliminar_cliente$$
 CREATE PROCEDURE eliminar_cliente(
     IN p_ruc CHAR(11)
 )
@@ -98,8 +96,6 @@ END$$
 
 -- =====================================================
 -- PROCEDIMIENTOS PARA: empleado
--- Estructura REAL: codigo, sexo, cargo, fecha_nacimiento, nombres,
---                  apellido_paterno, apellido_materno, ruc_cliente, nombre_archivo
 -- =====================================================
 
 -- Insertar empleado
@@ -130,7 +126,7 @@ BEGIN
             p_apellido_paterno, p_apellido_materno, p_ruc_cliente, p_nombre_archivo);
 
     COMMIT;
-    SELECT p_codigo AS codigo_insertado;
+    -- ✅ QUITADO: SELECT p_codigo AS codigo_insertado;
 END$$
 
 -- Actualizar empleado
@@ -167,7 +163,7 @@ BEGIN
     WHERE codigo = p_codigo;
 
     COMMIT;
-    SELECT ROW_COUNT() AS filas_afectadas;
+    -- ✅ QUITADO: SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
 -- Eliminar empleado
@@ -187,7 +183,7 @@ BEGIN
     DELETE FROM empleado WHERE codigo = p_codigo;
 
     COMMIT;
-    SELECT ROW_COUNT() AS filas_afectadas;
+    -- ✅ QUITADO: SELECT ROW_COUNT() AS filas_afectadas;
 END$$
 
 -- Listar empleados
@@ -202,7 +198,6 @@ END$$
 
 -- =====================================================
 -- PROCEDIMIENTOS PARA: consulta_sunat
--- Estructura REAL: nro_consultado, codigo_empleado, razon_social, estado, condicion
 -- =====================================================
 
 -- Insertar consulta SUNAT
@@ -227,7 +222,7 @@ BEGIN
     VALUES (p_nro_consultado, p_codigo_empleado, p_razon_social, p_estado, p_condicion);
 
     COMMIT;
-    SELECT 'Consulta SUNAT insertada' AS mensaje;
+    -- ✅ QUITADO: SELECT 'Consulta SUNAT insertada' AS mensaje;
 END$$
 
 -- Listar consultas SUNAT
@@ -241,7 +236,6 @@ END$$
 
 -- =====================================================
 -- PROCEDIMIENTOS PARA: archivo_excel_gestion_clientes
--- Estructura REAL: nombre, fecha_creacion, fecha_modificacion
 -- =====================================================
 
 -- Insertar archivo Excel
@@ -264,7 +258,7 @@ BEGIN
     VALUES (p_nombre, p_fecha_creacion, p_fecha_modificacion);
 
     COMMIT;
-    SELECT p_nombre AS archivo_insertado;
+    -- ✅ QUITADO: SELECT p_nombre AS archivo_insertado;
 END$$
 
 -- Actualizar archivo Excel
@@ -287,11 +281,13 @@ BEGIN
     WHERE nombre = p_nombre;
 
     COMMIT;
-    -- ✅ Ya no devuelve resultado, así evita el error "Unread result found"
+    -- ✅ Ya no devuelve resultado
 END$$
+
+DELIMITER ;
 
 -- =====================================================
 -- MENSAJE DE CONFIRMACIÓN
 -- =====================================================
 SELECT '✓✓✓ Procedimientos almacenados creados exitosamente ✓✓✓' AS Mensaje;
-SELECT '✓ Sin prefijo sp_ para coincidir con llamadas Python' AS Mensaje;
+SELECT '✓ Versión 2.2 - Sin SELECT al final (evita Unread result found)' AS Mensaje;

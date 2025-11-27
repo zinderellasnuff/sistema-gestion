@@ -1,13 +1,13 @@
 """
 Módulo de Gestión de Empleados
 Sistema JP Business Solutions
-Versión: 3.2 - Con combobox simplificados (estilo SUNAT)
+Versión: 3.3 - Con validaciones mejoradas
 """
 
 import tkinter as tk
 from tkinter import ttk, messagebox
 from models.config_db import Database
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 class GestionEmpleados:
@@ -17,7 +17,6 @@ class GestionEmpleados:
         self.ventana.geometry("1300x750")
         self.ventana.configure(bg="#F5F5F5")
         
-        # Configurar para que se cierre correctamente
         self.ventana.protocol("WM_DELETE_WINDOW", self.cerrar_ventana)
 
         self.empleados = []
@@ -28,6 +27,7 @@ class GestionEmpleados:
         self.cargar_listas_fk()
         self.crear_interfaz()
         self.cargar_empleados()
+        self.generar_siguiente_codigo()  # ✅ Auto-generar código al iniciar
 
     def cerrar_ventana(self):
         """Cierra la ventana correctamente"""
@@ -41,7 +41,6 @@ class GestionEmpleados:
             conn = Database.conectar()
             cursor = conn.cursor()
 
-            # Cargar clientes
             cursor.execute("""
                 SELECT ruc, CONCAT(nombres, ' ', apellido_paterno, ' ', apellido_materno) 
                 FROM cliente 
@@ -49,7 +48,6 @@ class GestionEmpleados:
             """)
             self.clientes_list = cursor.fetchall()
 
-            # Cargar archivos Excel
             cursor.execute("SELECT nombre FROM archivo_excel_gestion_clientes ORDER BY nombre")
             self.archivos_list = [row[0] for row in cursor.fetchall()]
 
@@ -65,6 +63,104 @@ class GestionEmpleados:
                     conn.close()
             except:
                 pass
+
+    # ✅ NUEVO MÉTODO: Generar código automáticamente
+    def generar_siguiente_codigo(self):
+        """Genera el siguiente código automáticamente"""
+        conn = None
+        cursor = None
+        try:
+            conn = Database.conectar()
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT COALESCE(MAX(codigo), 0) + 1 FROM empleado")
+            siguiente_codigo = cursor.fetchone()[0]
+            
+            self.entry_codigo.config(state='normal')
+            self.entry_codigo.delete(0, tk.END)
+            self.entry_codigo.insert(0, str(siguiente_codigo))
+            self.entry_codigo.config(state='disabled')  # ✅ Solo lectura
+            
+        except Exception as e:
+            self.mostrar_error("Error al generar código", str(e))
+        finally:
+            try:
+                if cursor:
+                    cursor.close()
+                if conn:
+                    conn.close()
+            except:
+                pass
+
+    # ✅ VALIDACIÓN MEJORADA: Validar edad con límites realistas
+    def validar_edad(self, fecha_nac):
+        """
+        Valida que el empleado tenga entre 18 y 80 años
+        Rango realista para trabajadores activos
+        """
+        try:
+            if fecha_nac == "YYYY-MM-DD" or not fecha_nac:
+                return False, "Fecha de nacimiento requerida"
+            
+            fecha = datetime.strptime(fecha_nac, "%Y-%m-%d")
+            hoy = datetime.now()
+            
+            # Calcular edad precisa
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            
+            # ✅ Validar que no sea fecha futura
+            if fecha > hoy:
+                return False, "La fecha de nacimiento no puede ser futura"
+            
+            # ✅ Validar rango realista: 18-80 años
+            if edad < 18:
+                return False, f"El empleado debe ser mayor de 18 años (Edad actual: {edad} años)"
+            
+            if edad > 80:
+                return False, f"Edad no válida: {edad} años (Rango permitido: 18-80 años)"
+            
+            return True, edad
+            
+        except ValueError:
+            return False, "Formato de fecha inválido (use YYYY-MM-DD)"
+
+    # ✅ NUEVA VALIDACIÓN: Validar nombres y apellidos
+    def validar_texto_nombre(self, texto, campo):
+        """
+        Valida que nombres/apellidos solo contengan letras y espacios
+        """
+        if not texto or not texto.strip():
+            return False, f"{campo} es obligatorio"
+        
+        texto = texto.strip()
+        
+        # Solo letras, espacios, tildes y ñ
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', texto):
+            return False, f"{campo} solo debe contener letras"
+        
+        if len(texto) < 2:
+            return False, f"{campo} debe tener al menos 2 caracteres"
+        
+        if len(texto) > 50:
+            return False, f"{campo} no debe exceder 50 caracteres"
+        
+        return True, texto
+
+    # ✅ NUEVA VALIDACIÓN: Validar cargo
+    def validar_cargo(self, cargo):
+        """Valida que el cargo sea válido"""
+        if not cargo or not cargo.strip():
+            return False, "Cargo es obligatorio"
+        
+        cargo = cargo.strip()
+        
+        if len(cargo) < 3:
+            return False, "Cargo debe tener al menos 3 caracteres"
+        
+        if len(cargo) > 100:
+            return False, "Cargo no debe exceder 100 caracteres"
+        
+        return True, cargo
 
     def crear_interfaz(self):
         # Header
@@ -112,16 +208,16 @@ class GestionEmpleados:
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # Código (PK)
+        # ✅ Código (Autoincremental - Solo lectura)
         self.crear_campo(form_frame, "Código: *", 0)
-        self.entry_codigo = tk.Entry(form_frame, font=("Segoe UI", 10), width=30)
+        self.entry_codigo = tk.Entry(form_frame, font=("Segoe UI", 10), width=30, state='disabled')
         self.entry_codigo.grid(row=0, column=1, padx=10, pady=8, sticky="ew")
         tk.Label(
             form_frame,
-            text="(Número entero único)",
+            text="(Autoincremental)",
             font=("Segoe UI", 8),
             bg="white",
-            fg="#888888"
+            fg="#28A745"
         ).grid(row=0, column=2, padx=5, sticky="w")
 
         # Sexo
@@ -152,7 +248,7 @@ class GestionEmpleados:
 
         tk.Label(
             form_frame,
-            text="(Mayor de 18 años)",
+            text="(18-80 años)",
             font=("Segoe UI", 8),
             bg="white",
             fg="#888888"
@@ -173,20 +269,19 @@ class GestionEmpleados:
         self.entry_ap_materno = tk.Entry(form_frame, font=("Segoe UI", 10), width=30)
         self.entry_ap_materno.grid(row=6, column=1, padx=10, pady=8, sticky="ew")
 
-        # ✅ RUC Cliente (FK) - ESTILO SUNAT SIMPLIFICADO
+        # RUC Cliente (FK)
         self.crear_campo(form_frame, "Cliente Asignado:", 7)
         
-        # Preparar valores para combobox: código - nombre
         clientes_valores = [""] + [f"{ruc} - {nombre}" for ruc, nombre in self.clientes_list]
         
         self.combo_ruc_cliente = ttk.Combobox(
             form_frame,
             values=clientes_valores,
-            state="readonly",  # ✅ Solo lectura, no se puede escribir
+            state="readonly",
             font=("Segoe UI", 10),
             width=28
         )
-        self.combo_ruc_cliente.set("")  # Valor por defecto vacío
+        self.combo_ruc_cliente.set("")
         self.combo_ruc_cliente.grid(row=7, column=1, padx=10, pady=8, sticky="ew")
 
         tk.Label(
@@ -197,7 +292,7 @@ class GestionEmpleados:
             fg="#888888"
         ).grid(row=7, column=2, padx=5, sticky="w")
 
-        # ✅ Nombre Archivo (FK) - ESTILO SUNAT SIMPLIFICADO
+        # Nombre Archivo (FK)
         self.crear_campo(form_frame, "Archivo Excel:", 8)
         
         archivos_valores = [""] + self.archivos_list
@@ -205,11 +300,11 @@ class GestionEmpleados:
         self.combo_archivo = ttk.Combobox(
             form_frame,
             values=archivos_valores,
-            state="readonly",  # ✅ Solo lectura, no se puede escribir
+            state="readonly",
             font=("Segoe UI", 10),
             width=28
         )
-        self.combo_archivo.set("")  # Valor por defecto vacío
+        self.combo_archivo.set("")
         self.combo_archivo.grid(row=8, column=1, padx=10, pady=8, sticky="ew")
 
         tk.Label(
@@ -376,24 +471,12 @@ class GestionEmpleados:
         )
         label.grid(row=fila, column=0, padx=10, pady=5, sticky="e")
 
-    def validar_edad(self, fecha_nac):
-        """Valida que el empleado sea mayor de 18 años"""
-        try:
-            if fecha_nac == "YYYY-MM-DD" or not fecha_nac:
-                return False
-            fecha = datetime.strptime(fecha_nac, "%Y-%m-%d")
-            edad = (datetime.now() - fecha).days / 365.25
-            return edad >= 18
-        except:
-            return False
-
     def cargar_empleados(self):
         """Carga todos los empleados desde la base de datos"""
         conn = None
         cursor = None
         
         try:
-            # Guardar selección actual
             seleccion_anterior = None
             if self.tree.selection():
                 item = self.tree.item(self.tree.selection()[0])
@@ -438,7 +521,6 @@ class GestionEmpleados:
                 if seleccion_anterior and empleado[0] == seleccion_anterior:
                     item_a_seleccionar = item_id
 
-            # Restaurar selección
             if item_a_seleccionar:
                 self.tree.selection_set(item_a_seleccionar)
                 self.tree.see(item_a_seleccionar)
@@ -524,10 +606,8 @@ class GestionEmpleados:
             if empleado:
                 self.codigo_seleccionado = empleado[0]
 
-                # Habilitar código temporalmente
                 self.entry_codigo.config(state='normal')
 
-                # Limpiar y cargar datos
                 self.entry_codigo.delete(0, tk.END)
                 self.entry_nombres.delete(0, tk.END)
                 self.entry_ap_paterno.delete(0, tk.END)
@@ -543,10 +623,8 @@ class GestionEmpleados:
                 self.entry_ap_paterno.insert(0, empleado[5])
                 self.entry_ap_materno.insert(0, empleado[6])
 
-                # ✅ RUC Cliente - buscar en combobox y seleccionar
                 ruc_cliente = empleado[7]
                 if ruc_cliente:
-                    # Buscar el valor completo "RUC - Nombre" en el combobox
                     for i, (ruc, nombre) in enumerate(self.clientes_list):
                         if ruc == ruc_cliente:
                             valor_completo = f"{ruc} - {nombre}"
@@ -555,14 +633,12 @@ class GestionEmpleados:
                 else:
                     self.combo_ruc_cliente.set("")
 
-                # ✅ Archivo - buscar en combobox y seleccionar
                 nombre_archivo = empleado[8]
                 if nombre_archivo and nombre_archivo in self.archivos_list:
                     self.combo_archivo.set(nombre_archivo)
                 else:
                     self.combo_archivo.set("")
 
-                # Deshabilitar código (PK)
                 self.entry_codigo.config(state='disabled')
 
         except Exception as e:
@@ -577,12 +653,9 @@ class GestionEmpleados:
                 pass
 
     def nuevo_empleado(self):
-        """Limpia el formulario para un nuevo empleado"""
+        """Limpia el formulario y genera nuevo código"""
         self.codigo_seleccionado = None
 
-        self.entry_codigo.config(state='normal')
-
-        self.entry_codigo.delete(0, tk.END)
         self.combo_sexo.set("Masculino")
         self.entry_cargo.delete(0, tk.END)
         self.entry_fecha_nac.delete(0, tk.END)
@@ -590,17 +663,18 @@ class GestionEmpleados:
         self.entry_nombres.delete(0, tk.END)
         self.entry_ap_paterno.delete(0, tk.END)
         self.entry_ap_materno.delete(0, tk.END)
-        self.combo_ruc_cliente.set("")  # ✅ Limpiar combobox
-        self.combo_archivo.set("")  # ✅ Limpiar combobox
+        self.combo_ruc_cliente.set("")
+        self.combo_archivo.set("")
         self.entry_buscar.delete(0, tk.END)
 
         for item in self.tree.selection():
             self.tree.selection_remove(item)
 
-        self.entry_codigo.focus()
+        self.generar_siguiente_codigo()  # ✅ Auto-generar código
+        self.entry_nombres.focus()
 
     def guardar_empleado(self):
-        """Guarda un nuevo empleado con modal de confirmación"""
+        """Guarda un nuevo empleado con validaciones completas"""
         codigo = self.entry_codigo.get().strip()
         sexo = self.combo_sexo.get()
         cargo = self.entry_cargo.get().strip()
@@ -609,29 +683,57 @@ class GestionEmpleados:
         ap_paterno = self.entry_ap_paterno.get().strip()
         ap_materno = self.entry_ap_materno.get().strip()
 
-        # Validaciones
-        if not codigo or not sexo or not cargo or not nombres or not ap_paterno or not ap_materno:
-            self.mostrar_advertencia(
-                "Campos Obligatorios",
-                "Complete:\n• Código\n• Sexo\n• Cargo\n• Nombres\n• Apellidos"
-            )
+        # ✅ Validación de código
+        if not codigo or not codigo.isdigit():
+            self.mostrar_error("Código Inválido", "Error al generar el código automático")
             return
 
-        if not codigo.isdigit():
-            self.mostrar_error("Código Inválido", "El código debe ser un número entero positivo")
-            self.entry_codigo.focus()
+        # ✅ Validar nombres
+        valido, resultado = self.validar_texto_nombre(nombres, "Nombres")
+        if not valido:
+            self.mostrar_error("Nombres Inválidos", resultado)
+            self.entry_nombres.focus()
+            return
+        nombres = resultado
+
+        # ✅ Validar apellido paterno
+        valido, resultado = self.validar_texto_nombre(ap_paterno, "Apellido Paterno")
+        if not valido:
+            self.mostrar_error("Apellido Paterno Inválido", resultado)
+            self.entry_ap_paterno.focus()
+            return
+        ap_paterno = resultado
+
+        # ✅ Validar apellido materno
+        valido, resultado = self.validar_texto_nombre(ap_materno, "Apellido Materno")
+        if not valido:
+            self.mostrar_error("Apellido Materno Inválido", resultado)
+            self.entry_ap_materno.focus()
+            return
+        ap_materno = resultado
+
+        # ✅ Validar cargo
+        valido, resultado = self.validar_cargo(cargo)
+        if not valido:
+            self.mostrar_error("Cargo Inválido", resultado)
+            self.entry_cargo.focus()
+            return
+        cargo = resultado
+
+        # ✅ Validar sexo
+        if not sexo:
+            self.mostrar_error("Sexo Requerido", "Seleccione el sexo del empleado")
             return
 
-        if not self.validar_edad(fecha_nac):
-            self.mostrar_error(
-                "Fecha Inválida",
-                "La fecha de nacimiento es inválida o el empleado es menor de 18 años.\n\n"
-                "Formato requerido: YYYY-MM-DD"
-            )
+        # ✅ Validar edad (18-80 años)
+        valido, resultado = self.validar_edad(fecha_nac)
+        if not valido:
+            self.mostrar_error("Fecha de Nacimiento Inválida", resultado)
             self.entry_fecha_nac.focus()
             return
+        edad = resultado
 
-        # ✅ Obtener FKs opcionales del combobox
+        # Obtener FKs opcionales
         ruc_cliente_text = self.combo_ruc_cliente.get().strip()
         ruc_cliente = None
         cliente_nombre = "Sin asignar"
@@ -641,14 +743,7 @@ class GestionEmpleados:
 
         nombre_archivo = self.combo_archivo.get().strip() or None
 
-        # Calcular edad para mostrar
-        try:
-            fecha = datetime.strptime(fecha_nac, "%Y-%m-%d")
-            edad = int((datetime.now() - fecha).days / 365.25)
-        except:
-            edad = 0
-
-        # ✅ MODAL DE CONFIRMACIÓN ANTES DE GUARDAR
+        # ✅ Modal de confirmación
         confirmacion = messagebox.askyesno(
             "💾 Confirmar Registro",
             f"¿Desea registrar este empleado?\n\n"
@@ -679,11 +774,9 @@ class GestionEmpleados:
 
             cursor.execute(query, valores)
 
-            # ✅ Consumir todos los resultados del stored procedure
             for result in cursor.stored_results():
                 result.fetchall()
             
-            # ✅ Consumir con nextset()
             while True:
                 try:
                     if not cursor.nextset():
@@ -693,19 +786,17 @@ class GestionEmpleados:
 
             conn.commit()
 
-            # ✅ MODAL DE ÉXITO
             self.mostrar_exito(
                 "Empleado Registrado",
                 f"✓ Empleado registrado exitosamente\n\n"
                 f"Código: {codigo}\n"
                 f"Nombre: {nombres} {ap_paterno} {ap_materno}\n"
-                f"Cargo: {cargo}"
+                f"Cargo: {cargo}\n"
+                f"Edad: {edad} años"
             )
             
-            # ✅ AUTO-REFRESH: Recargar y seleccionar el nuevo empleado
             self.cargar_empleados()
             
-            # Buscar y seleccionar el empleado recién insertado
             for item in self.tree.get_children():
                 if self.tree.item(item)['values'][0] == int(codigo):
                     self.tree.selection_set(item)
@@ -724,17 +815,16 @@ class GestionEmpleados:
             if "Duplicate entry" in error_msg:
                 self.mostrar_error(
                     "Código Duplicado",
-                    f"❌ Ya existe un empleado registrado con el código:\n{codigo}"
+                    f"❌ Ya existe un empleado con el código: {codigo}"
                 )
+                self.generar_siguiente_codigo()
             elif "Unread result" in error_msg:
-                # El INSERT se ejecutó correctamente a pesar del error
                 self.mostrar_exito(
                     "Empleado Registrado",
                     f"✓ Empleado registrado exitosamente\n\nCódigo: {codigo}"
                 )
                 self.cargar_empleados()
                 
-                # Seleccionar el empleado
                 for item in self.tree.get_children():
                     if self.tree.item(item)['values'][0] == int(codigo):
                         self.tree.selection_set(item)
@@ -754,7 +844,7 @@ class GestionEmpleados:
                 pass
 
     def actualizar_empleado(self):
-        """Actualiza un empleado existente con modal de confirmación"""
+        """Actualiza un empleado existente con validaciones"""
         if not self.codigo_seleccionado:
             self.mostrar_advertencia("Sin Selección", "Seleccione un empleado para actualizar")
             return
@@ -766,18 +856,41 @@ class GestionEmpleados:
         ap_paterno = self.entry_ap_paterno.get().strip()
         ap_materno = self.entry_ap_materno.get().strip()
 
-        if not sexo or not cargo or not nombres or not ap_paterno or not ap_materno:
-            self.mostrar_advertencia("Campos Obligatorios", "Complete todos los campos obligatorios")
+        # ✅ Validar nombres
+        valido, resultado = self.validar_texto_nombre(nombres, "Nombres")
+        if not valido:
+            self.mostrar_error("Nombres Inválidos", resultado)
             return
+        nombres = resultado
 
-        if not self.validar_edad(fecha_nac):
-            self.mostrar_error(
-                "Fecha Inválida",
-                "La fecha de nacimiento es inválida o el empleado es menor de 18 años"
-            )
+        # ✅ Validar apellidos
+        valido, resultado = self.validar_texto_nombre(ap_paterno, "Apellido Paterno")
+        if not valido:
+            self.mostrar_error("Apellido Paterno Inválido", resultado)
             return
+        ap_paterno = resultado
 
-        # ✅ Obtener FKs del combobox
+        valido, resultado = self.validar_texto_nombre(ap_materno, "Apellido Materno")
+        if not valido:
+            self.mostrar_error("Apellido Materno Inválido", resultado)
+            return
+        ap_materno = resultado
+
+        # ✅ Validar cargo
+        valido, resultado = self.validar_cargo(cargo)
+        if not valido:
+            self.mostrar_error("Cargo Inválido", resultado)
+            return
+        cargo = resultado
+
+        # ✅ Validar edad
+        valido, resultado = self.validar_edad(fecha_nac)
+        if not valido:
+            self.mostrar_error("Fecha Inválida", resultado)
+            return
+        edad = resultado
+
+        # Obtener FKs
         ruc_cliente_text = self.combo_ruc_cliente.get().strip()
         ruc_cliente = None
         cliente_nombre = "Sin asignar"
@@ -787,7 +900,6 @@ class GestionEmpleados:
 
         nombre_archivo = self.combo_archivo.get().strip() or None
 
-        # ✅ MODAL DE CONFIRMACIÓN ANTES DE ACTUALIZAR
         confirmacion = messagebox.askyesno(
             "🔄 Confirmar Actualización",
             f"¿Desea actualizar los datos de este empleado?\n\n"
@@ -795,6 +907,7 @@ class GestionEmpleados:
             f"Nuevo nombre: {nombres} {ap_paterno} {ap_materno}\n"
             f"Cargo: {cargo}\n"
             f"Sexo: {sexo}\n"
+            f"Edad: {edad} años\n"
             f"Cliente asignado: {cliente_nombre}",
             parent=self.ventana
         )
@@ -817,11 +930,9 @@ class GestionEmpleados:
 
             cursor.execute(query, valores)
 
-            # ✅ Consumir todos los resultados del stored procedure
             for result in cursor.stored_results():
                 result.fetchall()
             
-            # ✅ Consumir con nextset()
             while True:
                 try:
                     if not cursor.nextset():
@@ -831,7 +942,6 @@ class GestionEmpleados:
 
             conn.commit()
 
-            # ✅ MODAL DE ÉXITO
             self.mostrar_exito(
                 "Empleado Actualizado",
                 f"✓ Datos actualizados exitosamente\n\n"
@@ -839,7 +949,6 @@ class GestionEmpleados:
                 f"Nombre: {nombres} {ap_paterno} {ap_materno}"
             )
             
-            # ✅ AUTO-REFRESH: Recargar manteniendo la selección
             self.cargar_empleados()
 
         except Exception as e:
@@ -892,11 +1001,9 @@ class GestionEmpleados:
             query = "CALL eliminar_empleado(%s)"
             cursor.execute(query, (self.codigo_seleccionado,))
 
-            # ✅ Consumir todos los resultados del stored procedure
             for result in cursor.stored_results():
                 result.fetchall()
             
-            # ✅ Consumir con nextset()
             while True:
                 try:
                     if not cursor.nextset():
@@ -906,7 +1013,6 @@ class GestionEmpleados:
 
             conn.commit()
 
-            # ✅ MODAL DE ÉXITO
             self.mostrar_exito(
                 "Empleado Eliminado",
                 f"✓ Empleado eliminado exitosamente\n\n"
@@ -914,7 +1020,6 @@ class GestionEmpleados:
                 f"Nombre: {nombre_completo}"
             )
             
-            # ✅ AUTO-REFRESH: Recargar y limpiar formulario
             self.cargar_empleados()
             self.nuevo_empleado()
 
@@ -936,7 +1041,6 @@ class GestionEmpleados:
             except:
                 pass
 
-    # Métodos de mensajes modales
     def mostrar_exito(self, titulo, mensaje):
         """Muestra mensaje de éxito"""
         messagebox.showinfo(f"✓ {titulo}", mensaje, parent=self.ventana)
