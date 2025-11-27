@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from models.config_db import Database
+from models.sesion import SesionUsuario
+from views.login import VentanaLogin
 from views.modulo_clientes import GestionClientes
 from views.modulo_empleados import GestionEmpleados
 from views.modulo_consulta_sunat import ConsultaSUNAT
@@ -12,7 +14,7 @@ class AplicativoJP:
 
     def __init__(self, root):
         self.root = root
-        self.root.title("JP Business Solutions - Sistema de Gestión")
+        self.root.title("Sistema de Gestión")
         self.root.geometry("1100x700")
         self.root.configure(bg="#F5F5F5")
 
@@ -41,13 +43,13 @@ class AplicativoJP:
         header_frame.pack(fill=tk.X)
         header_frame.pack_propagate(False)
 
-        # Logo y título
+        # Logo y título (izquierda)
         titulo_container = tk.Frame(header_frame, bg="#0047AB")
-        titulo_container.pack(expand=True)
+        titulo_container.pack(side=tk.LEFT, expand=True, padx=20)
 
         titulo = tk.Label(
             titulo_container,
-            text="JP BUSINESS SOLUTIONS",
+            text="Gestion De Clientes",
             font=("Segoe UI", 22, "bold"),
             bg="#0047AB",
             fg="white"
@@ -62,6 +64,38 @@ class AplicativoJP:
             fg="#B8D4FF"
         )
         subtitulo_header.pack()
+
+        # Información de usuario (derecha)
+        if SesionUsuario.esta_autenticado():
+            user_info_frame = tk.Frame(header_frame, bg="#0047AB")
+            user_info_frame.pack(side=tk.RIGHT, padx=20)
+
+            user_icon = tk.Label(
+                user_info_frame,
+                text="👤",
+                font=("Segoe UI", 24),
+                bg="#0047AB",
+                fg="white"
+            )
+            user_icon.pack(pady=(15, 0))
+
+            user_name = tk.Label(
+                user_info_frame,
+                text=SesionUsuario.obtener_nombre(),
+                font=("Segoe UI", 10, "bold"),
+                bg="#0047AB",
+                fg="white"
+            )
+            user_name.pack()
+
+            user_role = tk.Label(
+                user_info_frame,
+                text=f"🔐 {SesionUsuario.obtener_rol()}",
+                font=("Segoe UI", 9),
+                bg="#0047AB",
+                fg="#B8D4FF"
+            )
+            user_role.pack()
 
         # Contenido principal con sombra
         main_container = tk.Frame(self.root, bg="#F5F5F5")
@@ -167,7 +201,7 @@ class AplicativoJP:
 
         footer_text = tk.Label(
             footer_content,
-            text="© 2025 JP Business Solutions | Sistema Empresarial v1.0",
+            text="© 2025 Sistema Empresarial v1.0",
             font=("Segoe UI", 9),
             bg="#E8E8E8",
             fg="#555555"
@@ -297,7 +331,14 @@ class AplicativoJP:
         except Exception as e:
             messagebox.showerror("Error", f"Error al abrir Configuración:\n{str(e)}")
 
+def mostrar_menu_principal():
+    """Muestra el menú principal después del login"""
+    root_main = tk.Tk()
+    app = AplicativoJP(root_main)
+    root_main.mainloop()
+
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = AplicativoJP(root)
-    root.mainloop()
+    # Crear ventana de login
+    root_login = tk.Tk()
+    login = VentanaLogin(root_login, on_login_success=mostrar_menu_principal)
+    root_login.mainloop()

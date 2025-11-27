@@ -1,6 +1,6 @@
 """
 Módulo de Reportes y Análisis
-Sistema JP Business Solutions
+Sistema De Gestion Clientes
 Versión: 3.1 - Con modales de confirmación y feedback mejorado
 """
 
@@ -13,7 +13,7 @@ from datetime import datetime
 class ModuloReportes:
     def __init__(self, parent):
         self.ventana = tk.Toplevel(parent)
-        self.ventana.title("Reportes y Análisis - JP Business Solutions")
+        self.ventana.title("Reportes y Análisis")
         self.ventana.geometry("1400x800")
         self.ventana.configure(bg="#F5F5F5")
         
@@ -406,6 +406,22 @@ class ModuloReportes:
             **btn_style
         )
         btn_exportar.pack(pady=5)
+
+        # Botón de navegación - Volver al menú
+        btn_volver = tk.Button(
+            btn_frame,
+            text="← Volver al Menú Principal",
+            bg="#6C757D",
+            fg="white",
+            command=self.cerrar_ventana,
+            font=("Segoe UI", 9, "bold"),
+            width=18,
+            cursor="hand2",
+            bd=0,
+            relief="flat",
+            pady=10
+        )
+        btn_volver.pack(pady=(15, 5))
 
         # Panel derecho - Visualización
         panel_der = tk.Frame(main_container, bg="white", relief=tk.RAISED, bd=2)

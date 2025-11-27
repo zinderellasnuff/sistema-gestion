@@ -1,0 +1,83 @@
+# ============================================
+# ARCHIVO DE CONFIGURACIÓN GITIGNORE
+# Sistema de Gestión de Clientes JP
+# ============================================
+
+# ===== ARCHIVOS DE CONFIGURACIÓN SENSIBLES =====
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+config.ini
+
+# ===== PYTHON =====
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# PyInstaller
+*.manifest
+*.spec
+build/
+dist/
+*.exe
+
+# ===== BASE DE DATOS =====
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+*.bak
+
+# ===== IDEs Y EDITORES =====
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===== SISTEMA OPERATIVO =====
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# ===== TEMPORALES Y CACHE =====
+*.tmp
+*.temp
+*.cache
+.cache/
+
+# ===== BACKUPS =====
+*.backup
+backup/
+backups/
+
+# ===== OTROS =====
+# Archivos de test
+test_output/
+*.test

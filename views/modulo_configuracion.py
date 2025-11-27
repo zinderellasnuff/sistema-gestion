@@ -1,6 +1,6 @@
 """
 Módulo de Configuración del Sistema
-Sistema JP Business Solutions
+Sistema Gestion De Clientes
 Versión: 1.0 - Completo y Funcional
 """
 
@@ -12,7 +12,7 @@ from datetime import datetime
 class ModuloConfiguracion:
     def __init__(self, parent):
         self.ventana = tk.Toplevel(parent)
-        self.ventana.title("Configuración del Sistema - JP Business Solutions")
+        self.ventana.title("Configuración del Sistema")
         self.ventana.geometry("1200x700")
         self.ventana.configure(bg="#F5F5F5")
         
@@ -105,20 +105,39 @@ class ModuloConfiguracion:
             stats_container, "⚠️", "Con Problemas", "0", "#DC3545", 1, 2
         )
 
+        # Frame para botones
+        botones_frame = tk.Frame(parent, bg="white")
+        botones_frame.pack(pady=20)
+
         # Botón actualizar
         btn_actualizar = tk.Button(
-            parent,
+            botones_frame,
             text="🔄 Actualizar Estadísticas",
-            font=("Segoe UI", 11, "bold"),
+            font=("Segoe UI", 10, "bold"),
             bg="#6C757D",
             fg="white",
             command=self.cargar_estadisticas,
             cursor="hand2",
             bd=0,
-            padx=30,
-            pady=12
+            padx=20,
+            pady=10
         )
-        btn_actualizar.pack(pady=20)
+        btn_actualizar.pack(side=tk.LEFT, padx=5)
+
+        # Botón volver
+        btn_volver = tk.Button(
+            botones_frame,
+            text="← Volver al Menú Principal",
+            font=("Segoe UI", 10, "bold"),
+            bg="#495057",
+            fg="white",
+            command=self.cerrar_ventana,
+            cursor="hand2",
+            bd=0,
+            padx=20,
+            pady=10
+        )
+        btn_volver.pack(side=tk.LEFT, padx=5)
 
     def crear_stat_card(self, parent, icono, titulo, valor, color, fila, columna):
         """Crea una tarjeta de estadística"""
@@ -177,7 +196,7 @@ class ModuloConfiguracion:
             ("🗄️ Base de Datos:", "gestion_clientes_jp"),
             ("📊 Motor:", "MariaDB/MySQL"),
             ("🔧 Versión:", "10.x / 8.x"),
-            ("🏢 Sistema:", "JP Business Solutions"),
+            ("🏢 Sistema:", "Gestion De Clientes"),
             ("📅 Fecha:", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
         ]
 
@@ -249,20 +268,39 @@ class ModuloConfiguracion:
         # Cargar información de tablas
         self.cargar_info_tablas()
 
+        # Frame para botones
+        botones_frame = tk.Frame(parent, bg="white")
+        botones_frame.pack(pady=20)
+
         # Botón actualizar
         btn_actualizar = tk.Button(
-            parent,
+            botones_frame,
             text="🔄 Actualizar Información",
-            font=("Segoe UI", 11, "bold"),
+            font=("Segoe UI", 10, "bold"),
             bg="#6C757D",
             fg="white",
             command=self.cargar_info_tablas,
             cursor="hand2",
             bd=0,
-            padx=30,
-            pady=12
+            padx=20,
+            pady=10
         )
-        btn_actualizar.pack(pady=20)
+        btn_actualizar.pack(side=tk.LEFT, padx=5)
+
+        # Botón volver
+        btn_volver = tk.Button(
+            botones_frame,
+            text="← Volver al Menú Principal",
+            font=("Segoe UI", 10, "bold"),
+            bg="#495057",
+            fg="white",
+            command=self.cerrar_ventana,
+            cursor="hand2",
+            bd=0,
+            padx=20,
+            pady=10
+        )
+        btn_volver.pack(side=tk.LEFT, padx=5)
 
     def crear_tab_informacion(self, parent):
         """Crea la pestaña de información del sistema"""
@@ -292,7 +330,7 @@ class ModuloConfiguracion:
 
         tk.Label(
             logo_frame,
-            text="JP BUSINESS SOLUTIONS",
+            text="Gestion De Clientes",
             font=("Segoe UI", 18, "bold"),
             bg="#E9ECEF",
             fg="#0047AB"
@@ -350,15 +388,30 @@ class ModuloConfiguracion:
         text_widget.insert("1.0", info_text)
         text_widget.config(state=tk.DISABLED)
 
+        # Botón de navegación - Volver al menú
+        btn_volver = tk.Button(
+            parent,
+            text="← Volver al Menú Principal",
+            font=("Segoe UI", 10, "bold"),
+            bg="#6C757D",
+            fg="white",
+            command=self.cerrar_ventana,
+            cursor="hand2",
+            bd=0,
+            padx=30,
+            pady=12
+        )
+        btn_volver.pack(pady=10)
+
         # Footer
         footer_label = tk.Label(
             parent,
-            text="© 2025 JP Business Solutions - Todos los derechos reservados",
+            text="© 2025 Todos los derechos reservados",
             font=("Segoe UI", 9),
             bg="white",
             fg="#999999"
         )
-        footer_label.pack(pady=15)
+        footer_label.pack(pady=10)
 
     def cargar_estadisticas(self):
         """Carga las estadísticas del sistema"""

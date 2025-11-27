@@ -1,262 +1,436 @@
-# Sistema de Gestión de Clientes JP
+# 🏢 Sistema de Gestión Empresarial
 
-Sistema de gestión integral para clientes, empleados y consultas SUNAT desarrollado en Python con Tkinter y MySQL.
+> Sistema integral de gestión de clientes, empleados y consultas tributarias desarrollado con Python y Tkinter
 
----
-
-## 📋 Descripción
-
-Aplicación de escritorio para JP Ingeniería y Servicios S.R.L. que permite gestionar clientes, empleados, consultas SUNAT y archivos Excel con auditoría automática y generación de reportes.
-
-**Proyecto académico** - Curso de Diseño de Bases de Datos, UCSM Arequipa, Perú.
+<!-- [Insertar aquí captura de pantalla del menú principal] -->
 
 ---
 
-## ✨ Características
+## 📋 Tabla de Contenidos
 
-- ✅ **Gestión de Clientes**: CRUD completo con validaciones (RUC, email, teléfono)
-- ✅ **Gestión de Empleados**: CRUD con cálculo de edad y asignación a clientes
-- ✅ **Consultas SUNAT**: Registro de consultas RUC con estados y condiciones
-- ✅ **Archivos Excel**: Importación y procesamiento automático
-- ✅ **Reportes**: 13 reportes diferentes con exportación a Excel/PDF
-- ✅ **Auditoría**: 9 triggers automáticos que registran todos los cambios
+- [Descripción](#-descripción)
+- [Características](#-características-principales)
+- [Tecnologías](#️-tecnologías)
+- [Requisitos](#-requisitos-previos)
+- [Instalación](#-instalación)
+- [Configuración](#️-configuración)
+- [Uso](#-uso)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Base de Datos](#-base-de-datos)
+- [Seguridad](#-seguridad)
+- [Capturas](#-capturas-de-pantalla)
+- [Licencia](#-licencia)
+
+---
+
+## 📝 Descripción
+
+Sistema empresarial desarrollado en Python que integra múltiples módulos para la gestión eficiente de información comercial. Incluye autenticación de usuarios, control de permisos por roles, validación con APIs externas, generación de reportes y exportación de datos.
+
+### Propósito
+Centralizar la administración de información empresarial en una aplicación de escritorio robusta, intuitiva y segura.
+
+---
+
+## ✨ Características Principales
+
+### 🔐 Autenticación y Seguridad
+- **Sistema de login** con validación de credenciales
+- **Control de acceso** basado en roles (Administrador/Contabilidad)
+- **Auditoría completa** de accesos y acciones
+- **Configuración segura** con variables de entorno (.env)
+
+### 👥 Gestión de Clientes
+- CRUD completo (Crear, Leer, Actualizar, Eliminar)
+- Validación de RUC (11 dígitos)
+- Búsqueda y filtrado en tiempo real
+- Información de contacto completa
+
+### 👔 Gestión de Empleados
+- Registro completo de personal
+- Asignación a clientes
+- Validación de fechas de nacimiento
+- Cálculo automático de edad
+- Gestión de cargos y datos personales
+
+### 🔍 Consultas SUNAT
+- **Integración con API de SUNAT** para validación de RUC
+- Consulta de estado tributario en tiempo real
+- Historial de consultas realizadas
+- Validación de razón social, estado y condición
+
+### 📊 Reportes y Análisis
+- **13 reportes predefinidos** con consultas SQL complejas
+- Exportación a CSV
+- Reportes con JOINs múltiples
+- Análisis de datos empresariales
+
+### 📑 Gestión de Archivos Excel
+- Registro de archivos del sistema
+- Control de fechas de creación/modificación
+- Auditoría de cambios
+
+### ⚙️ Configuración del Sistema
+- Visualización de estadísticas en tiempo real
+- Información de base de datos
+- Panel de información del sistema
 
 ---
 
 ## 🛠️ Tecnologías
 
-- **Python 3.8+** con Tkinter
-- **MySQL 8.0+** / MariaDB 10.5+
-- **mysql-connector-python** - Conexión a BD
-- **openpyxl** - Manejo de Excel
-- **pandas** - Análisis de datos
+### Backend
+- **Python 3.8+** - Lenguaje principal
+- **MySQL/MariaDB** - Base de datos relacional
+- **mysql-connector-python** - Conector de BD
+
+### Frontend
+- **Tkinter** - Interfaz gráfica nativa
+- **ttk** - Widgets modernos
+
+### Librerías Adicionales
+- **python-dotenv** - Gestión de variables de entorno
+- **requests** - Consumo de APIs REST
+- **matplotlib** - Visualización de datos
 - **reportlab** - Generación de PDFs
 
 ---
 
-## 📦 Instalación
+## 📋 Requisitos Previos
 
-### 1. Clonar repositorio
+### Software Necesario
+- Python 3.8 o superior
+- MySQL 5.7+ o MariaDB 10.x
+- pip (gestor de paquetes de Python)
+- Git (opcional)
+
+### Sistema Operativo
+- ✅ Windows 10/11
+- ✅ Linux (Ubuntu, Debian, Arch, etc.)
+- ✅ macOS
+
+---
+
+## 🚀 Instalación
+
+### 1. Clonar el Repositorio
 ```bash
-git clone https://github.com/[usuario]/gestion-clientes-jp.git
-cd gestion-clientes-jp
+git clone https://github.com/tuusuario/sistema-gestion.git
+cd sistema-gestion
 ```
 
-### 2. Instalar dependencias
+### 2. Crear Entorno Virtual
+```bash
+# En Linux/macOS
+python3 -m venv venv
+source venv/bin/activate
+
+# En Windows
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3. Instalar Dependencias
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configurar base de datos
+### 4. Configurar Base de Datos
+
+**Crear la base de datos:**
 ```bash
 mysql -u root -p
 ```
+
 ```sql
-CREATE DATABASE gestion_clientes_jp;
-USE gestion_clientes_jp;
+CREATE DATABASE gestion_clientes CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EXIT;
 ```
 
-### 4. Ejecutar scripts SQL (en orden)
+**Importar esquema:**
 ```bash
-mysql -u root -p gestion_clientes_jp < sql/database_schema.sql
-mysql -u root -p gestion_clientes_jp < sql/functions.sql
-mysql -u root -p gestion_clientes_jp < sql/stored_procedures.sql
-mysql -u root -p gestion_clientes_jp < sql/triggers.sql
-mysql -u root -p gestion_clientes_jp < sql/vistas.sql
-mysql -u root -p gestion_clientes_jp < sql/datos_prueba.sql
+mysql -u root -p gestion_clientes < sql/database_schema.sql
+mysql -u root -p gestion_clientes < sql/stored_procedures.sql
+mysql -u root -p gestion_clientes < sql/triggers.sql
+mysql -u root -p gestion_clientes < sql/functions.sql
+mysql -u root -p gestion_clientes < sql/vistas.sql
+mysql -u root -p gestion_clientes < sql/tabla_usuarios.sql
+mysql -u root -p gestion_clientes < sql/datos_prueba.sql
 ```
 
-### 5. Configurar conexión
-Editar `models/config_db.py`:
-```python
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'tu_password',
-    'database': 'gestion_clientes_jp'
-}
-```
+---
 
-### 6. Ejecutar aplicación
+## ⚙️ Configuración
+
+### Crear archivo `.env`
+
+Copiar el archivo de ejemplo y configurar:
+
 ```bash
+cp .env.example .env
+```
+
+Editar `.env` con tus credenciales:
+
+```env
+# Configuración de Base de Datos
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=tu_password_aqui
+DB_NAME=gestion_clientes
+DB_CHARSET=utf8mb4
+```
+
+⚠️ **IMPORTANTE:** El archivo `.env` está en `.gitignore` y NO debe subirse al repositorio.
+
+---
+
+## 🎯 Uso
+
+### Iniciar la Aplicación
+
+```bash
+# Activar entorno virtual
+source venv/bin/activate  # Linux/macOS
+# o
+venv\Scripts\activate     # Windows
+
+# Ejecutar aplicación
 python main.py
 ```
+
+### Usuarios por Defecto
+
+| Usuario | Contraseña | Rol | Permisos |
+|---------|------------|-----|----------|
+| `admin` | `admin123` | Administrador | ✅ Acceso total (incluye eliminar) |
+| `contabilidad` | `conta123` | Contabilidad | ✅ Registrar/Actualizar (sin eliminar) |
+
+### Navegación
+
+1. **Login:** Ingresar credenciales en la pantalla inicial
+2. **Menú Principal:** Seleccionar módulo desde los botones principales
+3. **Módulos:** Cada módulo tiene navegación con botón "Volver al Menú Principal"
+
+<!-- [Insertar aquí captura del flujo de navegación] -->
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 ```
-gestionclientesjp/
-├── main.py                          # Archivo principal
-├── requirements.txt                 # Dependencias
-├── README.md                        # Este archivo
-│
-├── models/                          # Modelos y configuración
-│   ├── __init__.py
-│   └── config_db.py                 # Configuración de BD
-│
-├── views/                           # Módulos de la aplicación
-│   ├── __init__.py
-│   ├── modulo_clientes.py           # CRUD Clientes
-│   ├── modulo_empleados.py          # CRUD Empleados
-│   ├── modulo_consulta_sunat.py     # Registro consultas SUNAT
-│   ├── modulo_archivos_excel.py     # Importación Excel
-│   └── modulo_reportes.py           # 13 reportes
-│
-└── sql/                             # Scripts de base de datos
-    ├── database_schema.sql          # Estructura de tablas
-    ├── functions.sql                # 20 funciones SQL
-    ├── stored_procedures.sql        # 13 procedimientos
-    ├── triggers.sql                 # 9 triggers de auditoría
-    ├── vistas.sql                   # 2 vistas
-    ├── consultas_reportes.sql       # Consultas para reportes
-    └── datos_prueba.sql             # Datos de prueba
+sistema-gestion/
+├── 📂 models/               # Modelos y lógica de negocio
+│   ├── config_db.py         # Configuración de base de datos
+│   └── sesion.py            # Gestión de sesión de usuario
+├── 📂 views/                # Interfaces gráficas (Tkinter)
+│   ├── login.py             # Ventana de autenticación
+│   ├── modulo_clientes.py   # Gestión de clientes
+│   ├── modulo_empleados.py  # Gestión de empleados
+│   ├── modulo_consulta_sunat.py # Consultas SUNAT
+│   ├── modulo_archivos_excel.py # Gestión de archivos
+│   ├── modulo_reportes.py   # Reportes y análisis
+│   └── modulo_configuracion.py # Configuración del sistema
+├── 📂 controllers/          # Controladores
+│   └── sunat_controller.py  # Lógica de consultas SUNAT
+├── 📂 sql/                  # Scripts de base de datos
+│   ├── database_schema.sql  # Esquema principal
+│   ├── stored_procedures.sql # Procedimientos almacenados
+│   ├── triggers.sql         # Triggers de auditoría
+│   ├── functions.sql        # Funciones SQL
+│   ├── vistas.sql           # Vistas
+│   ├── tabla_usuarios.sql   # Sistema de usuarios
+│   └── datos_prueba.sql     # Datos de ejemplo
+├── 📂 venv/                 # Entorno virtual (ignorado en git)
+├── 📄 main.py               # Punto de entrada de la aplicación
+├── 📄 requirements.txt      # Dependencias de Python
+├── 📄 .env.example          # Ejemplo de configuración
+├── 📄 .env                  # Configuración (NO subir a git)
+├── 📄 .gitignore            # Archivos ignorados por git
+├── 📄 LICENSE               # Licencia del proyecto
+├── 📄 README.md             # Este archivo
+└── 📄 PRUEBAS_LOGIN_ROLES.md # Guía de pruebas
 ```
 
 ---
 
 ## 🗄️ Base de Datos
 
-### Tablas principales (7)
-- `cliente` - Datos de clientes
-- `empleado` - Datos de empleados
-- `consulta_sunat` - Consultas RUC a SUNAT
-- `archivo_excel_gestion_clientes` - Archivos importados
-- `auditoria_cliente` - Auditoría de clientes
-- `auditoria_empleado` - Auditoría de empleados
-- `auditoria_archivo_excel` - Auditoría de archivos
+### Esquema Principal
 
-### Componentes SQL
-- **13 Procedimientos almacenados** - Todas las operaciones CRUD
-- **20 Funciones** - Validaciones y cálculos
-- **9 Triggers** - Auditoría automática (INSERT/UPDATE/DELETE)
-- **2 Vistas** - Dashboard y clientes con empleados
-- **13 Reportes** - 6+ con consultas JOIN
+#### Tablas Principales
+- **`cliente`** - Información de clientes
+- **`empleado`** - Información de empleados
+- **`consulta_sunat`** - Historial de consultas SUNAT
+- **`archivo_excel_gestion_clientes`** - Registro de archivos
+- **`usuarios`** - Sistema de autenticación
 
----
+#### Tablas de Auditoría
+- **`auditoria_cliente`** - Log de cambios en clientes
+- **`auditoria_empleado`** - Log de cambios en empleados
+- **`auditoria_archivo_excel`** - Log de cambios en archivos
+- **`auditoria_accesos`** - Log de accesos al sistema
 
-## 📊 Módulos del Sistema
+### Diagrama ER
 
-### 1. Módulo Clientes
-- Registrar, buscar, actualizar y eliminar clientes
-- Validación de RUC (11 dígitos)
-- Validación de correo y teléfono
-- Búsqueda en tiempo real
+<!-- [Insertar aquí diagrama de entidad-relación] -->
 
-### 2. Módulo Empleados
-- CRUD completo de empleados
-- Asignación a clientes
-- Validación de edad (mayor de 18 años)
-- Filtrado por cargo y sexo
+### Stored Procedures
 
-### 3. Módulo Consultas SUNAT
-- Registro de consultas RUC
-- Estados: ACTIVO, BAJA, SUSPENDIDO
-- Condiciones: HABIDO, NO HABIDO
-- Historial de consultas
+El sistema incluye **13 procedimientos almacenados** para operaciones CRUD:
+- `insertar_cliente`, `actualizar_cliente`, `eliminar_cliente`
+- `insertar_empleado`, `actualizar_empleado`, `eliminar_empleado`
+- `insertar_consulta_sunat`
+- `insertar_archivo_excel`, `actualizar_archivo_excel`
+- `registrar_acceso`
+- Y más...
 
-### 4. Módulo Archivos Excel
-- Importación de archivos .xlsx
-- Validación de estructura
-- Procesamiento automático
-- Historial de importaciones
+### Triggers
 
-### 5. Módulo Reportes
-- 13 reportes diferentes
-- Exportación a Excel y PDF
-- Dashboard con estadísticas
-- Consultas con JOIN
+**9 triggers de auditoría** que registran automáticamente:
+- Inserciones (AFTER INSERT)
+- Actualizaciones (AFTER UPDATE)
+- Eliminaciones (AFTER DELETE)
+
+### Funciones SQL
+
+**20+ funciones personalizadas** para:
+- Validaciones (RUC, email, teléfono)
+- Cálculos (edad, antigüedad)
+- Formateado de datos
 
 ---
 
-## 📈 Reportes Disponibles
+## 🔒 Seguridad
 
-1. **Dashboard Principal** - Estadísticas generales
-2. **Listado Completo de Clientes**
-3. **Clientes con Empleados Asignados** (JOIN)
-4. **Empleados por Cliente** (JOIN)
-5. **Consultas SUNAT Activas**
-6. **Consultas SUNAT por Empleado** (JOIN)
-7. **Empleados sin Cliente Asignado** (LEFT JOIN)
-8. **Clientes sin Empleados** (LEFT JOIN)
-9. **Empleados Mayores de 30 Años**
-10. **Archivos Excel Importados**
-11. **Auditoría de Clientes**
-12. **Auditoría de Empleados**
-13. **Auditoría de Archivos Excel**
+### Implementado
 
----
+✅ **Variables de entorno** - Credenciales fuera del código
+✅ **Sistema de autenticación** - Login obligatorio
+✅ **Control de permisos** - Roles con permisos diferenciados
+✅ **Auditoría completa** - Log de todas las acciones
+✅ **Validaciones** - Frontend y backend
+✅ **Conexiones seguras** - Manejo correcto de conexiones BD
 
-## 🔧 Requisitos del Sistema
+### Recomendaciones para Producción
 
-### Software
-- Python 3.8 o superior
-- MySQL 8.0+ o MariaDB 10.5+
-- pip (gestor de paquetes)
-
-### Hardware Mínimo
-- Procesador: Intel Core i3 o equivalente
-- RAM: 4 GB mínimo
-- Disco: 500 MB libres
-- Resolución: 1366x768
+⚠️ **Hashear contraseñas** con bcrypt o Argon2
+⚠️ **Certificados SSL** para conexiones a BD
+⚠️ **Rate limiting** en consultas a APIs
+⚠️ **Backups automáticos** de base de datos
+⚠️ **Timeout de sesión** para usuarios inactivos
 
 ---
 
-## 📝 Uso Rápido
+## 📸 Capturas de Pantalla
 
-```bash
-# 1. Instalar dependencias
-pip install -r requirements.txt
+### Pantalla de Login
+<!-- [Insertar captura de pantalla de login] -->
 
-# 2. Configurar base de datos
-mysql -u root -p < sql/database_schema.sql
+### Menú Principal
+<!-- [Insertar captura de menú principal con header de usuario] -->
 
-# 3. Ejecutar scripts SQL en orden (ver instalación)
+### Módulo de Clientes
+<!-- [Insertar captura del módulo de clientes] -->
 
-# 4. Configurar conexión en models/config_db.py
+### Módulo de Empleados
+<!-- [Insertar captura del módulo de empleados] -->
 
-# 5. Ejecutar aplicación
-python main.py
-```
+### Consultas SUNAT
+<!-- [Insertar captura de consultas SUNAT con API] -->
 
----
-
-## 🧪 Datos de Prueba
-
-Después de ejecutar `datos_prueba.sql`:
-
-**Clientes:**
-- RUC: 20123456789 - Empresa Constructora SAC
-- RUC: 20987654321 - Servicios Integrales EIRL
-
-**Empleados:**
-- Código: 1 - Juan Pérez
-- Código: 2 - María García
+### Reportes
+<!-- [Insertar captura del módulo de reportes] -->
 
 ---
 
-## 📚 Documentación Adicional
+## 🤝 Contribuir
 
-- **Manual de Usuario** - `docs/Manual_Usuario.docx`
-- **Memoria Descriptiva** - `docs/Memoria_Descriptiva.docx`
-- **Modelo Físico de BD** - Diagrama de base de datos
-- **Scripts SQL** - Carpeta `sql/`
+Las contribuciones son bienvenidas. Por favor:
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
 ---
 
-## 📄 Licencia
+## 📝 Changelog
 
-Este proyecto es de uso académico para fines educativos.
+### Versión 3.0.0 (Actual)
+- ✅ Sistema de autenticación con roles
+- ✅ Control de permisos por usuario
+- ✅ Navegación mejorada entre módulos
+- ✅ Configuración segura con .env
+- ✅ Integración con API SUNAT
+- ✅ 13 reportes empresariales
+- ✅ Auditoría completa de acciones
+
+### Versión 2.0.0
+- CRUD completo de todos los módulos
+- Stored procedures y triggers
+- Validaciones frontend/backend
+
+### Versión 1.0.0
+- Versión inicial con funcionalidad básica
+
+---
+
+## 🐛 Reporte de Bugs
+
+Si encuentras un bug, por favor crea un issue con:
+- Descripción detallada del problema
+- Pasos para reproducirlo
+- Comportamiento esperado vs. actual
+- Capturas de pantalla (si aplica)
+- Información del sistema (OS, versión Python, etc.)
+
+---
+
+## 📧 Contacto
+
+Para consultas sobre el proyecto, por favor abre un issue en el repositorio.
+
+---
+
+## 📜 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
 ## 🙏 Agradecimientos
 
-- JP Ingeniería y Servicios S.R.L.
-- Universidad Católica de Santa María (UCSM)
-- Docentes del curso de Diseño de Bases de Datos
+- Comunidad de Python
+- Documentación de Tkinter
+- Colaboradores del proyecto
+- API SUNAT del Perú
 
 ---
 
-**Última actualización:** Noviembre 2024
+## 🎓 Proyecto Académico
+
+Este sistema fue desarrollado como proyecto académico para la materia de Base de Datos.
+
+**Objetivos cumplidos:**
+- ✅ Diseño de base de datos relacional
+- ✅ Implementación de CRUD
+- ✅ Stored procedures y triggers
+- ✅ Funciones SQL personalizadas
+- ✅ Consultas complejas con JOINs
+- ✅ Integración con APIs externas
+- ✅ Interfaz gráfica de usuario
+- ✅ Sistema de autenticación
+
+---
+
+<div align="center">
+
+**Desarrollado con ❤️ usando Python y Tkinter**
+
+⭐ Si te gustó este proyecto, considera darle una estrella en GitHub
+
+[🔝 Volver arriba](#-sistema-de-gestión-empresarial)
+
+</div>

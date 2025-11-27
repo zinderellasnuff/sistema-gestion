@@ -1,18 +1,19 @@
 """
-Módulo de Gestión de Clientes
-Sistema JP Business Solutions
+Módulo de Clientes
+Sistema Gestion De Clientes
 Versión: 3.0 - Optimizado con mejores prácticas
 """
 
 import tkinter as tk
 from tkinter import ttk, messagebox
 from models.config_db import Database
+from models.sesion import SesionUsuario
 import re
 
 class GestionClientes:
     def __init__(self, parent):
         self.ventana = tk.Toplevel(parent)
-        self.ventana.title("Gestión de Clientes - JP Business Solutions")
+        self.ventana.title("Gestión de Clientes")
         self.ventana.geometry("1200x700")
         self.ventana.configure(bg="#F5F5F5")
         
@@ -174,6 +175,33 @@ class GestionClientes:
             **btn_style
         )
         btn_eliminar.grid(row=1, column=1, padx=5, pady=5)
+
+        # Deshabilitar eliminar si no es administrador
+        if not SesionUsuario.puede_eliminar():
+            btn_eliminar.config(
+                state='disabled',
+                bg="#CCCCCC",
+                fg="#666666",
+                cursor="arrow"
+            )
+            # Tooltip al pasar el mouse
+            self.crear_tooltip(btn_eliminar, "⚠️ Solo Administradores pueden eliminar")
+
+        # Botón de navegación - Volver al menú
+        btn_volver = tk.Button(
+            btn_frame,
+            text="← Volver al Menú Principal",
+            bg="#6C757D",
+            fg="white",
+            command=self.cerrar_ventana,
+            font=("Segoe UI", 9, "bold"),
+            width=26,
+            cursor="hand2",
+            bd=0,
+            relief="flat",
+            pady=8
+        )
+        btn_volver.grid(row=2, column=0, columnspan=2, padx=5, pady=(15, 5), sticky="ew")
 
         # Panel derecho - Lista de clientes
         panel_der = tk.Frame(main_container, bg="white", relief=tk.RAISED, bd=2)
@@ -729,3 +757,28 @@ class GestionClientes:
     def mostrar_advertencia(self, titulo, mensaje):
         """Muestra mensaje de advertencia"""
         messagebox.showwarning(f"⚠ {titulo}", mensaje, parent=self.ventana)
+
+    def crear_tooltip(self, widget, texto):
+        """Crea un tooltip para un widget"""
+        def mostrar_tooltip(event):
+            tooltip = tk.Toplevel()
+            tooltip.wm_overrideredirect(True)
+            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
+            label = tk.Label(
+                tooltip,
+                text=texto,
+                background="#FFE4B5",
+                relief=tk.SOLID,
+                borderwidth=1,
+                font=("Segoe UI", 9)
+            )
+            label.pack()
+            widget.tooltip = tooltip
+
+        def ocultar_tooltip(event):
+            if hasattr(widget, 'tooltip'):
+                widget.tooltip.destroy()
+                delattr(widget, 'tooltip')
+
+        widget.bind('<Enter>', mostrar_tooltip)
+        widget.bind('<Leave>', ocultar_tooltip)

@@ -1,6 +1,6 @@
 """
 Módulo de Consultas SUNAT
-Sistema JP Business Solutions
+Sistema De Gestion De Clientes
 Versión: 3.1 - Con modales de confirmación y auto-refresh
 """
 
@@ -12,7 +12,7 @@ import re
 class ConsultaSUNAT:
     def __init__(self, parent):
         self.ventana = tk.Toplevel(parent)
-        self.ventana.title("Consultas SUNAT - JP Business Solutions")
+        self.ventana.title("Consultas SUNAT")
         self.ventana.geometry("1200x700")
         self.ventana.configure(bg="#F5F5F5")
         
@@ -222,6 +222,22 @@ class ConsultaSUNAT:
             **btn_style
         )
         btn_limpiar.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
+
+        # Botón de navegación - Volver al menú
+        btn_volver = tk.Button(
+            btn_frame,
+            text="← Volver al Menú Principal",
+            bg="#495057",
+            fg="white",
+            command=self.cerrar_ventana,
+            font=("Segoe UI", 9, "bold"),
+            width=30,
+            cursor="hand2",
+            bd=0,
+            relief="flat",
+            pady=10
+        )
+        btn_volver.grid(row=2, column=0, columnspan=2, padx=5, pady=(15, 5), sticky="ew")
 
         # Panel derecho - Historial de consultas
         panel_der = tk.Frame(main_container, bg="white", relief=tk.RAISED, bd=2)

@@ -1,6 +1,6 @@
 """
 Módulo de Gestión de Archivos Excel
-Sistema JP Business Solutions
+Sistema de Gestión Empresarial
 Versión: 3.1 - Con modales de confirmación y auto-refresh
 """
 
@@ -13,7 +13,7 @@ import re
 class GestionArchivosExcel:
     def __init__(self, parent):
         self.ventana = tk.Toplevel(parent)
-        self.ventana.title("Gestión de Archivos Excel - JP Business Solutions")
+        self.ventana.title("Gestión de Archivos Excel - Sistema de Gestión Empresarial")
         self.ventana.geometry("1400x700")
         self.ventana.configure(bg="#F5F5F5")
         
@@ -116,7 +116,7 @@ class GestionArchivosExcel:
         info_label = tk.Label(
             form_frame,
             text="ℹ Este módulo registra metadatos de archivos Excel utilizados\n" +
-                 "en el sistema de gestión de clientes JP Business Solutions.",
+                 "en el sistema de gestión de clientes.",
             font=("Segoe UI", 9, "italic"),
             bg="white",
             fg="#666666",
@@ -175,6 +175,22 @@ class GestionArchivosExcel:
             **btn_style
         )
         btn_actualizar.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
+
+        # Botón de navegación - Volver al menú
+        btn_volver = tk.Button(
+            btn_frame,
+            text="← Volver al Menú Principal",
+            bg="#6C757D",
+            fg="white",
+            command=self.cerrar_ventana,
+            font=("Segoe UI", 9, "bold"),
+            width=30,
+            cursor="hand2",
+            bd=0,
+            relief="flat",
+            pady=10
+        )
+        btn_volver.grid(row=2, column=0, columnspan=2, padx=5, pady=(15, 5), sticky="ew")
 
         # Panel derecho - Lista de archivos
         panel_der = tk.Frame(main_container, bg="white", relief=tk.RAISED, bd=2)

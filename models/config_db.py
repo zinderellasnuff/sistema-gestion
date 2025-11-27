@@ -1,14 +1,19 @@
 import mysql.connector
 from mysql.connector import Error
+from dotenv import load_dotenv
+import os
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 class Database:
-    
+
     CONFIG = {
-        'host': 'localhost',
-        'user': 'root',             
-        'password': 'Zinderellasnuff_344',              
-        'database': 'gestion_clientes_jp',
-        'charset': 'utf8mb4'
+        'host': os.getenv('DB_HOST', 'localhost'),
+        'user': os.getenv('DB_USER', 'root'),
+        'password': os.getenv('DB_PASSWORD'),
+        'database': os.getenv('DB_NAME', 'gestion_clientes_jp'),
+        'charset': os.getenv('DB_CHARSET', 'utf8mb4')
     }
     
     _connection = None
