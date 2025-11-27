@@ -270,34 +270,76 @@ class GestionEmpleados:
         self.entry_ap_materno = tk.Entry(form_frame, font=("Segoe UI", 10), width=30)
         self.entry_ap_materno.grid(row=6, column=1, padx=10, pady=8, sticky="ew")
 
-        # RUC Cliente (FK)
+        # RUC Cliente (FK) - Con búsqueda dinámica
         self.crear_campo(form_frame, "Cliente Asignado:", 7)
-        
-        clientes_valores = [""] + [f"{ruc} - {nombre}" for ruc, nombre in self.clientes_list]
-        
-        self.combo_ruc_cliente = ttk.Combobox(
-            form_frame,
-            values=clientes_valores,
-            state="readonly",
+
+        # Frame para búsqueda de cliente
+        cliente_search_frame = tk.Frame(form_frame, bg="white")
+        cliente_search_frame.grid(row=7, column=1, padx=10, pady=8, sticky="ew")
+
+        # Entry para búsqueda con autocompletado
+        self.entry_buscar_cliente = tk.Entry(
+            cliente_search_frame,
             font=("Segoe UI", 10),
-            width=28
+            bg="#F8F9FA"
         )
-        self.combo_ruc_cliente.set("")
-        self.combo_ruc_cliente.grid(row=7, column=1, padx=10, pady=8, sticky="ew")
+        self.entry_buscar_cliente.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.entry_buscar_cliente.insert(0, "🔍 Buscar cliente... (RUC o Nombre)")
+        self.entry_buscar_cliente.bind("<FocusIn>", self.on_cliente_focus_in)
+        self.entry_buscar_cliente.bind("<FocusOut>", self.on_cliente_focus_out)
+        self.entry_buscar_cliente.bind("<KeyRelease>", self.buscar_cliente_dinamico)
+
+        # Botón para limpiar
+        btn_limpiar_cliente = tk.Button(
+            cliente_search_frame,
+            text="✕",
+            font=("Segoe UI", 9, "bold"),
+            bg="#DC3545",
+            fg="white",
+            command=self.limpiar_cliente,
+            cursor="hand2",
+            bd=0,
+            padx=8,
+            pady=2
+        )
+        btn_limpiar_cliente.pack(side=tk.LEFT, padx=(5, 0))
+
+        # Listbox para resultados de búsqueda (oculto por defecto)
+        self.listbox_clientes = tk.Listbox(
+            form_frame,
+            font=("Segoe UI", 9),
+            height=8,
+            bg="white",
+            selectmode=tk.SINGLE
+        )
+        self.listbox_clientes.bind("<<ListboxSelect>>", self.seleccionar_cliente_listbox)
+
+        # Variable para guardar el cliente seleccionado
+        self.cliente_seleccionado = None
+
+        # Label para mostrar cliente seleccionado
+        self.label_cliente_sel = tk.Label(
+            form_frame,
+            text="",
+            font=("Segoe UI", 9, "italic"),
+            bg="white",
+            fg="#28A745"
+        )
+        self.label_cliente_sel.grid(row=8, column=1, padx=10, sticky="w")
 
         tk.Label(
             form_frame,
-            text="(Opcional)",
+            text="(Opcional - Busca por RUC o nombre)",
             font=("Segoe UI", 8),
             bg="white",
             fg="#888888"
         ).grid(row=7, column=2, padx=5, sticky="w")
 
         # Nombre Archivo (FK)
-        self.crear_campo(form_frame, "Archivo Excel:", 8)
-        
+        self.crear_campo(form_frame, "Archivo Excel:", 9)
+
         archivos_valores = [""] + self.archivos_list
-        
+
         self.combo_archivo = ttk.Combobox(
             form_frame,
             values=archivos_valores,
@@ -306,7 +348,7 @@ class GestionEmpleados:
             width=28
         )
         self.combo_archivo.set("")
-        self.combo_archivo.grid(row=8, column=1, padx=10, pady=8, sticky="ew")
+        self.combo_archivo.grid(row=9, column=1, padx=10, pady=8, sticky="ew")
 
         tk.Label(
             form_frame,
@@ -314,7 +356,7 @@ class GestionEmpleados:
             font=("Segoe UI", 8),
             bg="white",
             fg="#888888"
-        ).grid(row=8, column=2, padx=5, sticky="w")
+        ).grid(row=9, column=2, padx=5, sticky="w")
 
         # Nota de campos obligatorios
         tk.Label(
@@ -652,13 +694,17 @@ class GestionEmpleados:
 
                 ruc_cliente = empleado[7]
                 if ruc_cliente:
-                    for i, (ruc, nombre) in enumerate(self.clientes_list):
+                    for ruc, nombre in self.clientes_list:
                         if ruc == ruc_cliente:
                             valor_completo = f"{ruc} - {nombre}"
-                            self.combo_ruc_cliente.set(valor_completo)
+                            self.cliente_seleccionado = ruc
+                            self.entry_buscar_cliente.delete(0, tk.END)
+                            self.entry_buscar_cliente.insert(0, valor_completo)
+                            self.entry_buscar_cliente.config(bg="white")
+                            self.label_cliente_sel.config(text=f"✓ Cliente seleccionado: {ruc}")
                             break
                 else:
-                    self.combo_ruc_cliente.set("")
+                    self.limpiar_cliente()
 
                 nombre_archivo = empleado[8]
                 if nombre_archivo and nombre_archivo in self.archivos_list:
@@ -690,7 +736,7 @@ class GestionEmpleados:
         self.entry_nombres.delete(0, tk.END)
         self.entry_ap_paterno.delete(0, tk.END)
         self.entry_ap_materno.delete(0, tk.END)
-        self.combo_ruc_cliente.set("")
+        self.limpiar_cliente()
         self.combo_archivo.set("")
         self.entry_buscar.delete(0, tk.END)
 
@@ -761,12 +807,14 @@ class GestionEmpleados:
         edad = resultado
 
         # Obtener FKs opcionales
-        ruc_cliente_text = self.combo_ruc_cliente.get().strip()
-        ruc_cliente = None
+        ruc_cliente = self.cliente_seleccionado
         cliente_nombre = "Sin asignar"
-        if ruc_cliente_text and " - " in ruc_cliente_text:
-            ruc_cliente = ruc_cliente_text.split(" - ")[0]
-            cliente_nombre = ruc_cliente_text.split(" - ")[1]
+        if ruc_cliente:
+            # Buscar nombre del cliente
+            for ruc, nombre in self.clientes_list:
+                if ruc == ruc_cliente:
+                    cliente_nombre = nombre
+                    break
 
         nombre_archivo = self.combo_archivo.get().strip() or None
 
@@ -918,12 +966,14 @@ class GestionEmpleados:
         edad = resultado
 
         # Obtener FKs
-        ruc_cliente_text = self.combo_ruc_cliente.get().strip()
-        ruc_cliente = None
+        ruc_cliente = self.cliente_seleccionado
         cliente_nombre = "Sin asignar"
-        if ruc_cliente_text and " - " in ruc_cliente_text:
-            ruc_cliente = ruc_cliente_text.split(" - ")[0]
-            cliente_nombre = ruc_cliente_text.split(" - ")[1]
+        if ruc_cliente:
+            # Buscar nombre del cliente
+            for ruc, nombre in self.clientes_list:
+                if ruc == ruc_cliente:
+                    cliente_nombre = nombre
+                    break
 
         nombre_archivo = self.combo_archivo.get().strip() or None
 
@@ -1079,6 +1129,73 @@ class GestionEmpleados:
     def mostrar_advertencia(self, titulo, mensaje):
         """Muestra mensaje de advertencia"""
         messagebox.showwarning(f"⚠ {titulo}", mensaje, parent=self.ventana)
+
+    def on_cliente_focus_in(self, event):
+        """Limpia el placeholder cuando se hace foco"""
+        if self.entry_buscar_cliente.get() == "🔍 Buscar cliente... (RUC o Nombre)":
+            self.entry_buscar_cliente.delete(0, tk.END)
+            self.entry_buscar_cliente.config(bg="white")
+
+    def on_cliente_focus_out(self, event):
+        """Restaura el placeholder si está vacío"""
+        if not self.entry_buscar_cliente.get():
+            self.entry_buscar_cliente.insert(0, "🔍 Buscar cliente... (RUC o Nombre)")
+            self.entry_buscar_cliente.config(bg="#F8F9FA")
+            self.listbox_clientes.grid_forget()
+
+    def buscar_cliente_dinamico(self, event):
+        """Búsqueda dinámica de clientes mientras se escribe"""
+        busqueda = self.entry_buscar_cliente.get().strip().upper()
+
+        # Si está vacío o es el placeholder, ocultar listbox
+        if not busqueda or busqueda == "🔍 BUSCAR CLIENTE... (RUC O NOMBRE)":
+            self.listbox_clientes.grid_forget()
+            return
+
+        # Filtrar clientes que coincidan con la búsqueda
+        resultados = []
+        for ruc, nombre in self.clientes_list:
+            if busqueda in ruc.upper() or busqueda in nombre.upper():
+                resultados.append((ruc, nombre))
+
+        # Mostrar resultados en listbox
+        if resultados:
+            self.listbox_clientes.delete(0, tk.END)
+            for ruc, nombre in resultados[:20]:  # Máximo 20 resultados
+                self.listbox_clientes.insert(tk.END, f"{ruc} - {nombre}")
+
+            # Mostrar listbox debajo del entry
+            self.listbox_clientes.grid(row=8, column=1, padx=10, pady=(0, 5), sticky="ew")
+        else:
+            self.listbox_clientes.grid_forget()
+
+    def seleccionar_cliente_listbox(self, event):
+        """Selecciona un cliente del listbox"""
+        if not self.listbox_clientes.curselection():
+            return
+
+        seleccion = self.listbox_clientes.get(self.listbox_clientes.curselection())
+        ruc = seleccion.split(" - ")[0]
+
+        # Guardar cliente seleccionado
+        self.cliente_seleccionado = ruc
+
+        # Actualizar entry y label
+        self.entry_buscar_cliente.delete(0, tk.END)
+        self.entry_buscar_cliente.insert(0, seleccion)
+        self.label_cliente_sel.config(text=f"✓ Cliente seleccionado: {ruc}")
+
+        # Ocultar listbox
+        self.listbox_clientes.grid_forget()
+
+    def limpiar_cliente(self):
+        """Limpia la selección de cliente"""
+        self.cliente_seleccionado = None
+        self.entry_buscar_cliente.delete(0, tk.END)
+        self.entry_buscar_cliente.insert(0, "🔍 Buscar cliente... (RUC o Nombre)")
+        self.entry_buscar_cliente.config(bg="#F8F9FA")
+        self.label_cliente_sel.config(text="")
+        self.listbox_clientes.grid_forget()
 
     def crear_tooltip(self, widget, texto):
         """Crea un tooltip para un widget"""

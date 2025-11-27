@@ -104,18 +104,62 @@ class ConsultaSUNAT:
             fg="#888888"
         ).grid(row=0, column=2, padx=5, sticky="w")
 
-        # Empleado que consulta (FK)
+        # Empleado que consulta (FK) - Con búsqueda dinámica
         self.crear_campo(form_frame, "Empleado: *", 1)
-        empleado_frame = tk.Frame(form_frame, bg="white")
-        empleado_frame.grid(row=1, column=1, padx=10, pady=8, sticky="ew")
 
-        self.combo_empleado = ttk.Combobox(
-            empleado_frame,
-            values=[f"{codigo} - {nombre}" for codigo, nombre in self.empleados_list],
-            font=("Segoe UI", 9),
-            width=27
+        # Frame para búsqueda de empleado
+        empleado_search_frame = tk.Frame(form_frame, bg="white")
+        empleado_search_frame.grid(row=1, column=1, padx=10, pady=8, sticky="ew")
+
+        # Entry para búsqueda con autocompletado
+        self.entry_buscar_empleado = tk.Entry(
+            empleado_search_frame,
+            font=("Segoe UI", 10),
+            bg="#F8F9FA"
         )
-        self.combo_empleado.pack(fill=tk.X)
+        self.entry_buscar_empleado.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.entry_buscar_empleado.insert(0, "🔍 Buscar empleado... (Código o Nombre)")
+        self.entry_buscar_empleado.bind("<FocusIn>", self.on_empleado_focus_in)
+        self.entry_buscar_empleado.bind("<FocusOut>", self.on_empleado_focus_out)
+        self.entry_buscar_empleado.bind("<KeyRelease>", self.buscar_empleado_dinamico)
+
+        # Botón para limpiar
+        btn_limpiar_empleado = tk.Button(
+            empleado_search_frame,
+            text="✕",
+            font=("Segoe UI", 9, "bold"),
+            bg="#DC3545",
+            fg="white",
+            command=self.limpiar_empleado,
+            cursor="hand2",
+            bd=0,
+            padx=8,
+            pady=2
+        )
+        btn_limpiar_empleado.pack(side=tk.LEFT, padx=(5, 0))
+
+        # Listbox para resultados de búsqueda (oculto por defecto)
+        self.listbox_empleados = tk.Listbox(
+            form_frame,
+            font=("Segoe UI", 9),
+            height=8,
+            bg="white",
+            selectmode=tk.SINGLE
+        )
+        self.listbox_empleados.bind("<<ListboxSelect>>", self.seleccionar_empleado_listbox)
+
+        # Variable para guardar el empleado seleccionado
+        self.empleado_seleccionado = None
+
+        # Label para mostrar empleado seleccionado
+        self.label_empleado_sel = tk.Label(
+            form_frame,
+            text="",
+            font=("Segoe UI", 9, "italic"),
+            bg="white",
+            fg="#28A745"
+        )
+        self.label_empleado_sel.grid(row=2, column=1, padx=10, sticky="w")
 
         tk.Label(
             form_frame,
@@ -126,14 +170,14 @@ class ConsultaSUNAT:
         ).grid(row=1, column=2, padx=5, sticky="w")
 
         # Razón Social
-        self.crear_campo(form_frame, "Razón Social: *", 2)
+        self.crear_campo(form_frame, "Razón Social: *", 3)
         self.entry_razon_social = tk.Entry(form_frame, font=("Segoe UI", 10), width=30)
-        self.entry_razon_social.grid(row=2, column=1, padx=10, pady=8, sticky="ew")
+        self.entry_razon_social.grid(row=3, column=1, padx=10, pady=8, sticky="ew")
 
         # Estado SUNAT
-        self.crear_campo(form_frame, "Estado SUNAT: *", 3)
+        self.crear_campo(form_frame, "Estado SUNAT: *", 4)
         estado_frame = tk.Frame(form_frame, bg="white")
-        estado_frame.grid(row=3, column=1, padx=10, pady=8, sticky="ew")
+        estado_frame.grid(row=4, column=1, padx=10, pady=8, sticky="ew")
 
         self.combo_estado = ttk.Combobox(
             estado_frame,
@@ -146,9 +190,9 @@ class ConsultaSUNAT:
         self.combo_estado.pack(fill=tk.X)
 
         # Condición SUNAT
-        self.crear_campo(form_frame, "Condición: *", 4)
+        self.crear_campo(form_frame, "Condición: *", 5)
         condicion_frame = tk.Frame(form_frame, bg="white")
-        condicion_frame.grid(row=4, column=1, padx=10, pady=8, sticky="ew")
+        condicion_frame.grid(row=5, column=1, padx=10, pady=8, sticky="ew")
 
         self.combo_condicion = ttk.Combobox(
             condicion_frame,
@@ -473,9 +517,14 @@ class ConsultaSUNAT:
 
                 # Seleccionar empleado
                 codigo_empleado = consulta[1]
-                for i, (codigo, nombre) in enumerate(self.empleados_list):
+                for codigo, nombre in self.empleados_list:
                     if codigo == codigo_empleado:
-                        self.combo_empleado.current(i)
+                        valor_completo = f"{codigo} - {nombre}"
+                        self.empleado_seleccionado = codigo
+                        self.entry_buscar_empleado.delete(0, tk.END)
+                        self.entry_buscar_empleado.insert(0, valor_completo)
+                        self.entry_buscar_empleado.config(bg="white")
+                        self.label_empleado_sel.config(text=f"✓ Empleado seleccionado: {codigo}")
                         break
 
         except Exception as e:
@@ -494,7 +543,7 @@ class ConsultaSUNAT:
         self.entry_nro_consultado.delete(0, tk.END)
         self.entry_razon_social.delete(0, tk.END)
         self.entry_buscar.delete(0, tk.END)
-        self.combo_empleado.set("")
+        self.limpiar_empleado()
         self.combo_estado.set("ACTIVO")
         self.combo_condicion.set("HABIDO")
         
@@ -585,13 +634,13 @@ class ConsultaSUNAT:
     def guardar_consulta(self):
         """Guarda una consulta SUNAT con modal de confirmación"""
         nro_consultado = self.entry_nro_consultado.get().strip()
-        empleado_text = self.combo_empleado.get().strip()
+        codigo_empleado = self.empleado_seleccionado
         razon_social = self.entry_razon_social.get().strip()
         estado = self.combo_estado.get()
         condicion = self.combo_condicion.get()
 
         # Validaciones
-        if not nro_consultado or not empleado_text or not razon_social:
+        if not nro_consultado or not codigo_empleado or not razon_social:
             self.mostrar_advertencia(
                 "Campos Obligatorios",
                 "Complete:\n• RUC Consultado\n• Empleado\n• Razón Social"
@@ -603,13 +652,14 @@ class ConsultaSUNAT:
             self.entry_nro_consultado.focus()
             return
 
-        # Extraer código de empleado
-        if " - " not in empleado_text:
-            self.mostrar_error("Empleado Inválido", "Seleccione un empleado válido de la lista")
-            return
+        # Buscar nombre del empleado
+        nombre_empleado = "Desconocido"
+        for cod, nombre in self.empleados_list:
+            if cod == codigo_empleado:
+                nombre_empleado = nombre
+                break
 
-        codigo_empleado = int(empleado_text.split(" - ")[0])
-        nombre_empleado = empleado_text.split(" - ")[1]
+        codigo_empleado = int(codigo_empleado)
 
         # ✅ MODAL DE CONFIRMACIÓN ANTES DE GUARDAR
         confirmacion = messagebox.askyesno(
@@ -728,3 +778,70 @@ class ConsultaSUNAT:
     def mostrar_info(self, titulo, mensaje):
         """Muestra mensaje informativo"""
         messagebox.showinfo(f"ℹ {titulo}", mensaje, parent=self.ventana)
+
+    def on_empleado_focus_in(self, event):
+        """Limpia el placeholder cuando se hace foco"""
+        if self.entry_buscar_empleado.get() == "🔍 Buscar empleado... (Código o Nombre)":
+            self.entry_buscar_empleado.delete(0, tk.END)
+            self.entry_buscar_empleado.config(bg="white")
+
+    def on_empleado_focus_out(self, event):
+        """Restaura el placeholder si está vacío"""
+        if not self.entry_buscar_empleado.get():
+            self.entry_buscar_empleado.insert(0, "🔍 Buscar empleado... (Código o Nombre)")
+            self.entry_buscar_empleado.config(bg="#F8F9FA")
+            self.listbox_empleados.grid_forget()
+
+    def buscar_empleado_dinamico(self, event):
+        """Búsqueda dinámica de empleados mientras se escribe"""
+        busqueda = self.entry_buscar_empleado.get().strip().upper()
+
+        # Si está vacío o es el placeholder, ocultar listbox
+        if not busqueda or busqueda == "🔍 BUSCAR EMPLEADO... (CÓDIGO O NOMBRE)":
+            self.listbox_empleados.grid_forget()
+            return
+
+        # Filtrar empleados que coincidan con la búsqueda
+        resultados = []
+        for codigo, nombre in self.empleados_list:
+            if busqueda in str(codigo).upper() or busqueda in nombre.upper():
+                resultados.append((codigo, nombre))
+
+        # Mostrar resultados en listbox
+        if resultados:
+            self.listbox_empleados.delete(0, tk.END)
+            for codigo, nombre in resultados[:20]:  # Máximo 20 resultados
+                self.listbox_empleados.insert(tk.END, f"{codigo} - {nombre}")
+
+            # Mostrar listbox debajo del entry
+            self.listbox_empleados.grid(row=2, column=1, padx=10, pady=(0, 5), sticky="ew")
+        else:
+            self.listbox_empleados.grid_forget()
+
+    def seleccionar_empleado_listbox(self, event):
+        """Selecciona un empleado del listbox"""
+        if not self.listbox_empleados.curselection():
+            return
+
+        seleccion = self.listbox_empleados.get(self.listbox_empleados.curselection())
+        codigo = seleccion.split(" - ")[0]
+
+        # Guardar empleado seleccionado
+        self.empleado_seleccionado = codigo
+
+        # Actualizar entry y label
+        self.entry_buscar_empleado.delete(0, tk.END)
+        self.entry_buscar_empleado.insert(0, seleccion)
+        self.label_empleado_sel.config(text=f"✓ Empleado seleccionado: {codigo}")
+
+        # Ocultar listbox
+        self.listbox_empleados.grid_forget()
+
+    def limpiar_empleado(self):
+        """Limpia la selección de empleado"""
+        self.empleado_seleccionado = None
+        self.entry_buscar_empleado.delete(0, tk.END)
+        self.entry_buscar_empleado.insert(0, "🔍 Buscar empleado... (Código o Nombre)")
+        self.entry_buscar_empleado.config(bg="#F8F9FA")
+        self.label_empleado_sel.config(text="")
+        self.listbox_empleados.grid_forget()

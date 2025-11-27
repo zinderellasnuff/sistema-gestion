@@ -39,7 +39,7 @@ class AplicativoJP:
 
     def crear_interfaz(self):
         # Header con degradado visual
-        header_frame = tk.Frame(self.root, bg="#0047AB", height=100)
+        header_frame = tk.Frame(self.root, bg="#0047AB", height=180)
         header_frame.pack(fill=tk.X)
         header_frame.pack_propagate(False)
 
@@ -65,37 +65,59 @@ class AplicativoJP:
         )
         subtitulo_header.pack()
 
-        # Información de usuario (derecha)
-        if SesionUsuario.esta_autenticado():
-            user_info_frame = tk.Frame(header_frame, bg="#0047AB")
-            user_info_frame.pack(side=tk.RIGHT, padx=20)
+        # Información de usuario (derecha) - SIEMPRE mostrar
+        user_info_frame = tk.Frame(header_frame, bg="#0047AB")
+        user_info_frame.pack(side=tk.RIGHT, padx=20, pady=10)
 
-            user_icon = tk.Label(
-                user_info_frame,
-                text="👤",
-                font=("Segoe UI", 24),
-                bg="#0047AB",
-                fg="white"
-            )
-            user_icon.pack(pady=(15, 0))
+        # Icono de usuario
+        user_icon = tk.Label(
+            user_info_frame,
+            text="👤",
+            font=("Segoe UI", 20),
+            bg="#0047AB",
+            fg="white"
+        )
+        user_icon.pack(pady=(5, 0))
 
-            user_name = tk.Label(
-                user_info_frame,
-                text=SesionUsuario.obtener_nombre(),
-                font=("Segoe UI", 10, "bold"),
-                bg="#0047AB",
-                fg="white"
-            )
-            user_name.pack()
+        # Nombre de usuario
+        nombre = SesionUsuario.obtener_nombre()
+        user_name = tk.Label(
+            user_info_frame,
+            text=nombre,
+            font=("Segoe UI", 10, "bold"),
+            bg="#0047AB",
+            fg="white"
+        )
+        user_name.pack(pady=(2, 0))
 
-            user_role = tk.Label(
-                user_info_frame,
-                text=f"🔐 {SesionUsuario.obtener_rol()}",
-                font=("Segoe UI", 9),
-                bg="#0047AB",
-                fg="#B8D4FF"
-            )
-            user_role.pack()
+        # Rol de usuario
+        rol = SesionUsuario.obtener_rol()
+        user_role = tk.Label(
+            user_info_frame,
+            text=f"🔐 {rol}",
+            font=("Segoe UI", 8),
+            bg="#0047AB",
+            fg="#B8D4FF"
+        )
+        user_role.pack(pady=(2, 5))
+
+        # Botón Cerrar Sesión - SIEMPRE visible
+        btn_logout = tk.Button(
+            user_info_frame,
+            text="🚪 Cerrar Sesión",
+            font=("Segoe UI", 9, "bold"),
+            bg="#DC3545",
+            fg="white",
+            activebackground="#C82333",
+            activeforeground="white",
+            command=self.cerrar_sesion,
+            cursor="hand2",
+            bd=0,
+            relief="flat",
+            padx=15,
+            pady=6
+        )
+        btn_logout.pack(pady=(5, 8))
 
         # Contenido principal con sombra
         main_container = tk.Frame(self.root, bg="#F5F5F5")
@@ -181,13 +203,13 @@ class AplicativoJP:
             2, 0
         )
 
-        # Módulo 6: Configuración
+        # Módulo 6: Dashboard
         self.crear_tarjeta_modulo(
             modules_frame,
-            "⚙️ CONFIGURACIÓN",
-            "Ajustes del sistema y parámetros generales",
+            "📊 DASHBOARD",
+            "Estadísticas y gráficos del sistema en tiempo real",
             "#6C757D",
-            self.configuracion,
+            self.dashboard,
             2, 1
         )
 
@@ -201,7 +223,7 @@ class AplicativoJP:
 
         footer_text = tk.Label(
             footer_content,
-            text="© 2025 Sistema Empresarial v1.0",
+            text="© 2025 Sistema de Gestión Empresarial | Licencia MIT",
             font=("Segoe UI", 9),
             bg="#E8E8E8",
             fg="#555555"
@@ -289,6 +311,25 @@ class AplicativoJP:
         inner_frame.bind("<Enter>", on_enter)
         inner_frame.bind("<Leave>", on_leave)
 
+    def cerrar_sesion(self):
+        """Cierra la sesión y vuelve al login"""
+        respuesta = messagebox.askyesno(
+            "Cerrar Sesión",
+            f"¿Está seguro que desea cerrar sesión?\n\nUsuario: {SesionUsuario.obtener_nombre()}",
+            parent=self.root
+        )
+
+        if respuesta:
+            # Cerrar sesión
+            SesionUsuario.cerrar_sesion()
+            # Cerrar ventana principal
+            self.root.destroy()
+            # Volver a mostrar login
+            root_login = tk.Tk()
+            from views.login import VentanaLogin
+            login = VentanaLogin(root_login, on_login_success=mostrar_menu_principal)
+            root_login.mainloop()
+
     def gestion_clientes(self):
         """Abre el módulo de gestión de clientes"""
         try:
@@ -324,12 +365,12 @@ class AplicativoJP:
         except Exception as e:
             messagebox.showerror("Error", f"Error al abrir Reportes:\n{str(e)}")
 
-    def configuracion(self):
-        """Muestra el módulo de configuración"""
+    def dashboard(self):
+        """Muestra el dashboard con estadísticas"""
         try:
             ModuloConfiguracion(self.root)
         except Exception as e:
-            messagebox.showerror("Error", f"Error al abrir Configuración:\n{str(e)}")
+            messagebox.showerror("Error", f"Error al abrir Dashboard:\n{str(e)}")
 
 def mostrar_menu_principal():
     """Muestra el menú principal después del login"""
