@@ -46,7 +46,7 @@ Rol: Contabilidad
    ```
 
 2. **Login como Admin:**
-   - Usuario: `admin`
+   - Usuario: `admin`q
    - Contraseña: `admin123`
    - Verificar: Aparece mensaje "Bienvenido Administrador del Sistema"
 
@@ -157,12 +157,3 @@ Ninguno por el momento.
 - En producción usar bcrypt para hashear passwords
 - La tabla `auditoria_accesos` registra todos los intentos de login
 - El procedimiento `registrar_acceso` actualiza fecha de último acceso
-
----
-
-## 🎯 Próximas Mejoras
-
-1. Agregar botón "Cerrar Sesión" en header
-2. Implementar timeout de sesión
-3. Mostrar último acceso en ventana de configuración
-4. Agregar historial de acciones por usuario

@@ -115,8 +115,8 @@ Centralizar la administración de información empresarial en una aplicación de
 
 ### 1. Clonar el Repositorio
 ```bash
-git clone https://github.com/zinderellasnuff/gestionclientesjp.git
-cd gestionclientesjp
+git clone https://github.com/zinderellasnuff/sistema-gestion.git
+cd sistema-gestion
 ```
 
 ### 2. Crear Entorno Virtual
@@ -405,7 +405,6 @@ Para consultas sobre el proyecto, por favor abre un issue en el repositorio.
 - Comunidad de Python
 - Documentación de Tkinter
 - Colaboradores del proyecto
-- API SUNAT del Perú
 
 ---
 
