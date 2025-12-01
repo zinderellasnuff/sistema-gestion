@@ -1,7 +1,7 @@
 """
 Controlador para consultas SUNAT
 Versión: 5.0 - API Decolecta (FUNCIONAL)
-Sistema JP Business Solutions
+Sistema de Gestión Empresarial
 """
 
 import requests

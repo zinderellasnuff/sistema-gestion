@@ -10,7 +10,7 @@ from views.modulo_archivos_excel import GestionArchivosExcel
 from views.modulo_reportes import ModuloReportes
 from views.modulo_configuracion import ModuloConfiguracion
 
-class AplicativoJP:
+class AplicativoGestion:
 
     def __init__(self, root):
         self.root = root
@@ -410,7 +410,7 @@ class AplicativoJP:
 def mostrar_menu_principal():
     """Muestra el menú principal después del login"""
     root_main = tk.Tk()
-    app = AplicativoJP(root_main)
+    app = AplicativoGestion(root_main)
     root_main.mainloop()
 
 if __name__ == "__main__":

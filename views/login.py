@@ -1,6 +1,6 @@
 """
 Módulo de Login
-Sistema de Gestión de Clientes JP
+Sistema de Gestión Empresarial
 Ventana de autenticación de usuarios
 """
 
@@ -188,7 +188,7 @@ class VentanaLogin:
         # Footer
         footer_label = tk.Label(
             self.root,
-            text="© 2025 Sistema Empresarial - UCSM",
+            text="© 2025 Sistema de Gestión Empresarial",
             font=("Segoe UI", 8),
             bg="#F5F5F5",
             fg="#999999"

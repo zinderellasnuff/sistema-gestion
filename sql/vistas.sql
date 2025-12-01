@@ -3,7 +3,7 @@
 -- Versión: 1.0
 -- =====================================================
 
-USE gestion_clientes_jp;
+USE gestion_clientes;
 
 -- Vista: Dashboard principal
 DROP VIEW IF EXISTS vista_dashboard_principal;

@@ -4,7 +4,7 @@
 -- Versión: 2.0 (Adaptado)
 -- =====================================================
 
-USE gestion_clientes_jp;
+USE gestion_clientes;
 
 -- =====================================================
 -- NOTA: Este script NO recrea las tablas existentes

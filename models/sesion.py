@@ -1,6 +1,6 @@
 """
 Módulo de Sesión de Usuario
-Sistema de Gestión de Clientes JP
+Sistema de Gestión Empresarial
 Maneja la sesión activa del usuario autenticado
 """
 

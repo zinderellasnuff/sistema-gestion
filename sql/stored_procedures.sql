@@ -4,7 +4,7 @@
 -- Versión: 2.2 - SIN SELECT al final (corrige "Unread result found")
 -- =====================================================
 
-USE gestion_clientes_jp;
+USE gestion_clientes;
 
 DELIMITER $$
 

@@ -3,7 +3,7 @@
 -- Sistema de Gestión Empresarial
 -- ============================================
 
-USE gestion_clientes_jp;
+USE gestion_clientes;
 
 -- Crear tabla de usuarios
 CREATE TABLE IF NOT EXISTS usuarios (

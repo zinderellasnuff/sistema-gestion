@@ -4,7 +4,7 @@
 -- 13 Consultas implementadas (100% completo)
 -- =====================================================
 
-USE gestion_clientes_jp;
+USE gestion_clientes;
 
 -- =====================================================
 -- CONSULTA 1: Listado completo de clientes

@@ -3,7 +3,7 @@
 -- Versión: 1.0 - Adaptado a estructura REAL
 -- =====================================================
 
-USE gestion_clientes_jp;
+USE gestion_clientes;
 
 -- =====================================================
 -- CREAR TABLAS DE AUDITORÍA

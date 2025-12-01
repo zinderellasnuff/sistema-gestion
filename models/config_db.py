@@ -12,7 +12,7 @@ class Database:
         'host': os.getenv('DB_HOST', 'localhost'),
         'user': os.getenv('DB_USER', 'root'),
         'password': os.getenv('DB_PASSWORD'),
-        'database': os.getenv('DB_NAME', 'gestion_clientes_jp'),
+        'database': os.getenv('DB_NAME', 'gestion_clientes'),
         'charset': os.getenv('DB_CHARSET', 'utf8mb4')
     }
     
