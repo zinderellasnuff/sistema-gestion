@@ -53,8 +53,8 @@ Centralizar la administración de información empresarial en una aplicación de
 - Cálculo automático de edad
 - Gestión de cargos y datos personales
 
-### 🔍 Consultas SUNAT
-- **Integración con API de SUNAT** para validación de RUC
+### 🔍 Validación Tributaria
+- **Integración con API externa** para validación de identificación fiscal
 - Consulta de estado tributario en tiempo real
 - Historial de consultas realizadas
 - Validación de razón social, estado y condición
@@ -227,12 +227,12 @@ sistema-gestion/
 │   ├── login.py             # Ventana de autenticación
 │   ├── modulo_clientes.py   # Gestión de clientes
 │   ├── modulo_empleados.py  # Gestión de empleados
-│   ├── modulo_consulta_sunat.py # Consultas SUNAT
+│   ├── modulo_consulta_sunat.py # Validación tributaria
 │   ├── modulo_archivos_excel.py # Gestión de archivos
 │   ├── modulo_reportes.py   # Reportes y análisis
 │   └── modulo_configuracion.py # Configuración del sistema
 ├── 📂 controllers/          # Controladores
-│   └── sunat_controller.py  # Lógica de consultas SUNAT
+│   └── sunat_controller.py  # Lógica de validación tributaria
 ├── 📂 sql/                  # Scripts de base de datos
 │   ├── database_schema.sql  # Esquema principal
 │   ├── stored_procedures.sql # Procedimientos almacenados
@@ -261,7 +261,7 @@ sistema-gestion/
 #### Tablas Principales
 - **`cliente`** - Información de clientes
 - **`empleado`** - Información de empleados
-- **`consulta_sunat`** - Historial de consultas SUNAT
+- **`consulta_sunat`** - Historial de validaciones tributarias
 - **`archivo_excel_gestion_clientes`** - Registro de archivos
 - **`usuarios`** - Sistema de autenticación
 
@@ -340,9 +340,9 @@ El sistema incluye **13 procedimientos almacenados** para operaciones CRUD:
 <!-- [Insertar captura del módulo de empleados] -->
 ![Módulo de Empleados](img/empleados.png)
 
-### Consultas SUNAT
-<!-- [Insertar captura de consultas SUNAT con API] -->
-![Consultas SUNAT](img/sunat.png)
+### Validación Tributaria
+<!-- [Insertar captura de validación tributaria con API] -->
+![Validación Tributaria](img/validacion_tributaria.png)
 
 ### Reportes
 <!-- [Insertar captura del módulo de reportes] -->
@@ -369,7 +369,7 @@ Las contribuciones son bienvenidas. Por favor:
 - ✅ Control de permisos por usuario
 - ✅ Navegación mejorada entre módulos
 - ✅ Configuración segura con .env
-- ✅ Integración con API SUNAT
+- ✅ Integración con API externa de validación fiscal
 - ✅ 13 reportes empresariales
 - ✅ Auditoría completa de acciones
 
