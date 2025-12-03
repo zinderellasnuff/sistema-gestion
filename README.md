@@ -19,7 +19,6 @@
 - [Base de Datos](#-base-de-datos)
 - [Seguridad](#-seguridad)
 - [Capturas](#-capturas-de-pantalla)
-- [Licencia](#-licencia)
 
 ---
 
@@ -442,8 +441,6 @@ Para consultas sobre el proyecto, por favor abre un issue en el repositorio.
 <div align="center">
 
 **Desarrollado con ❤️ usando Python y Tkinter**
-
-⭐ Si te gustó este proyecto, considera darle una estrella en GitHub
 
 [🔝 Volver arriba](#-sistema-de-gestión-empresarial)
 
