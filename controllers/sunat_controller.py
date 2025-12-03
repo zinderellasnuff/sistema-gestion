@@ -6,16 +6,21 @@ Sistema de Gestión Empresarial
 
 import requests
 import re
+import os
 from typing import Dict, Optional
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 class SUNATController:
     """Controlador para interactuar con API de consulta RUC"""
 
     # ✅ API DECOLECTA - Configuración
     API_URL = 'https://api.decolecta.com/v1/sunat/ruc/full'
-    
-    # 🔑 TOKEN DE API (Válido hasta: November de 2026)
-    API_TOKEN = 'sk_11946.XqCed7qtXxj0tVWCQNcqhnZoMpAIScaS'
+
+    # 🔑 TOKEN DE API (Leer desde .env)
+    API_TOKEN = os.getenv('SUNAT_API_TOKEN', '')
 
     @staticmethod
     def validar_ruc(ruc: str) -> bool:
@@ -71,6 +76,25 @@ class SUNATController:
             }
 
         ruc = ruc.strip()
+
+        # Verificar si hay token configurado
+        if not SUNATController.API_TOKEN:
+            return {
+                'success': False,
+                'error': '⚠️ Token de API no configurado.\n\n'
+                        'Para usar la validación automática:\n'
+                        '1. Ve a: https://decolecta.com/dashboard\n'
+                        '2. Obtén tu token gratuito\n'
+                        '3. Agrégalo al archivo .env:\n'
+                        '   SUNAT_API_TOKEN=tu_token_aqui\n\n'
+                        'Por ahora, completa los datos manualmente.',
+                'razon_social': None,
+                'estado': None,
+                'condicion': None,
+                'direccion': None,
+                'ubigeo': None,
+                'api_used': None
+            }
 
         try:
             # ✅ CONSULTAR API DECOLECTA

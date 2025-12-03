@@ -179,9 +179,40 @@ DB_USER=root
 DB_PASSWORD=tu_password_aqui
 DB_NAME=gestion_clientes
 DB_CHARSET=utf8mb4
+
+# Configuración de API de Validación Fiscal (Opcional)
+# Obtener token gratuito en: https://decolecta.com/dashboard
+SUNAT_API_TOKEN=tu_token_api_aqui
 ```
 
 ⚠️ **IMPORTANTE:** El archivo `.env` está en `.gitignore` y NO debe subirse al repositorio.
+
+### Configuración de API de Validación Fiscal (Opcional)
+
+La aplicación puede validar automáticamente la información tributaria mediante una API externa:
+
+**Para habilitar la validación automática:**
+
+1. **Crear cuenta gratuita:**
+   - Visita: [https://decolecta.com/dashboard](https://decolecta.com/dashboard)
+   - Registra una cuenta gratuita
+   - Obtén tu token de API
+
+2. **Configurar el token:**
+   - Abre tu archivo `.env`
+   - Agrega tu token:
+     ```env
+     SUNAT_API_TOKEN=sk_xxxxx.xxxxxxxxxxxxxxxx
+     ```
+
+3. **Reiniciar la aplicación:**
+   - Cierra y vuelve a abrir el sistema
+   - La validación automática estará activa
+
+**Si no configuras el token:**
+- ✅ La aplicación funcionará normalmente
+- ⚠️ Deberás ingresar los datos tributarios manualmente
+- ℹ️ El sistema te mostrará un mensaje informativo
 
 ---
 
